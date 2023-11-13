@@ -46,7 +46,7 @@ function inputBytes(input: OutputInstance) {
     return 108 + 64 * 4;
   } else if (expandedExpression.startsWith('sh(wsh(')) {
     // Non-segwit: (txid:32) + (vout:4) + (sequence:4) + (script_len:1) + (p2wsh:35)
-    //  -> p2wsh: uses sha256 instead of hash160, so 12 more bytes than that p2wpkh above
+    //  -> p2wsh: uses sha256 instead of hash160, so 12 more bytes than that p2wpkh above:
     //  -> p2wsh_script: OP_0 OP_PUSH32 <sha256_of_script>
     //  -> p2wsh: (script_len:1) + (script:34)
     const scriptWitnessSize = input.getScriptSatisfactionSize();
@@ -62,7 +62,7 @@ function inputBytes(input: OutputInstance) {
     );
   } else if (expandedExpression.startsWith('sh(')) {
     // Regular sh(MINISCRIPT)
-    // Non-segwit: (txid:32) + (vout:4) + (sequence:4) + (locking_len) + (locking) + (unlocking_len) + (ulocking):
+    // Non-segwit: (txid:32) + (vout:4) + (sequence:4) + (locking_len) + (locking) + (unlocking_len) + (unlocking):
     const scriptSatisfactionSize = input.getScriptSatisfactionSize();
     if (scriptSatisfactionSize === undefined) throw new Error(errorMsg);
     const lockingScriptSize = input.getRedeemScript()?.length;

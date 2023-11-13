@@ -48,6 +48,6 @@
     "regtest-client": "^0.2.1"
   },
   "dependencies": {
-    "@bitcoinerlab/descriptors": "^2.0.1"
+    "@bitcoinerlab/descriptors": "^2.0.2"
   }
 }
