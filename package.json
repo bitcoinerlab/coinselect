@@ -1,0 +1,50 @@
+{
+  "name": "coinselect",
+  "version": "0.0.1",
+  "author": "Jose-Luis Landabaso",
+  "license": "MIT",
+  "description": "A TypeScript library for Bitcoin transaction management, based on Bitcoin Descriptors for defining inputs and outputs. It facilitates optimal UTXO selection and transaction size calculation.",
+  "homepage": "https://bitcoinerlab.com/modules/coinselect",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "prettier": "@bitcoinerlab/configs/prettierConfig.json",
+  "eslintConfig": {
+    "extends": "./node_modules/@bitcoinerlab/configs/eslintConfig"
+  },
+  "jest": {
+    "preset": "@bitcoinerlab/configs"
+  },
+  "scripts": {
+    "webdocs": "typedoc --options ./node_modules/@bitcoinerlab/configs/webtypedoc.json",
+    "docs": "typedoc --options ./node_modules/@bitcoinerlab/configs/typedoc.json",
+    "build:src": "tsc --project ./node_modules/@bitcoinerlab/configs/tsconfig.src.json",
+    "build:test": "tsc --project ./node_modules/@bitcoinerlab/configs/tsconfig.test.json",
+    "build": "npm run build:src && npm run build:test",
+    "lint": "eslint --ignore-path .gitignore --ext .ts src/ test/",
+    "tester": "./node_modules/@bitcoinerlab/configs/scripts/tester.sh",
+    "test": "npm run lint && npm run build && npm run tester && NODE_OPTIONS=\"--experimental-fetch\" jest",
+    "prepublishOnly": "npm test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bitcoinerlab/coinselect.git"
+  },
+  "keywords": [
+    "coinselect",
+    "bitcoin",
+    "descriptors",
+    "utxos"
+  ],
+  "bugs": {
+    "url": "https://github.com/bitcoinerlab/coinselect/issues"
+  },
+  "files": [
+    "dist"
+  ],
+  "devDependencies": {
+    "@bitcoinerlab/configs": "github:bitcoinerlab/configs"
+  },
+  "dependencies": {
+    "@bitcoinerlab/descriptors": "^2.0.1"
+  }
+}
