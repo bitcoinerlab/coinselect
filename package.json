@@ -42,7 +42,9 @@
     "dist"
   ],
   "devDependencies": {
-    "@bitcoinerlab/configs": "github:bitcoinerlab/configs"
+    "@bitcoinerlab/configs": "github:bitcoinerlab/configs",
+    "bip39": "^3.1.0",
+    "regtest-client": "^0.2.1"
   },
   "dependencies": {
     "@bitcoinerlab/descriptors": "^2.0.1"
