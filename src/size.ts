@@ -1,15 +1,6 @@
 // Copyright (c) 2023 Jose-Luis Landabaso - https://bitcoinerlab.com
 // Distributed under the MIT software license
 
-//TODO: npm push new version of getScriptSatisfaction & delete
-// getScriptSatisfactionSize
-//
-//TODO: update the descriptors README adding the important signersPubKeys
-//TODO: update the stackExchange of bitcoinerlab
-//information in the constructor. Link to stackExchange (and fix it) probably
-//Also I believe that the preimages are also used??? this should be a param no?
-//knownPreimages?
-
 // https://gist.github.com/junderw/b43af3253ea5865ed52cb51c200ac19c
 // Look for byteLength: https://github.com/bitcoinjs/bitcoinjs-lib/blob/master/ts_src/transaction.ts
 // https://bitcoinops.org/en/tools/calc-size/
@@ -47,8 +38,7 @@ function signatureSize(signature?: PartialSig) {
   return encodingLength(length) + length;
 }
 
-//TODO: Dont use bang (!)
-function inputBytes(
+export function inputBytes(
   input: OutputInstance,
   /**
    *  If a transaction hasWitness, a single byte is then also required for
@@ -64,7 +54,7 @@ function inputBytes(
     'Input type not implemented. Currently supported: pkh(KEY), wpkh(KEY), sh(wpkh(KEY)), sh(wsh(MINISCRIPT)), sh(MINISCRIPT), wsh(MINISCRIPT).';
 
   const expandedExpression = input.expand().expandedExpression;
-  if (!expandedExpression) throw new Error('Invalid input');
+  if (!expandedExpression) throw new Error(errorMsg);
 
   if (expandedExpression.startsWith('pkh(')) {
     return (
@@ -90,13 +80,15 @@ function inputBytes(
       (1 + signatureSize(signatures?.[0]) + 34)
     );
   } else if (expandedExpression.startsWith('sh(wsh(')) {
+    const witnessScript = input.getWitnessScript();
+    if (!witnessScript) throw new Error('sh(wsh) must provide witnessScript');
     const payment = payments.p2sh({
       redeem: payments.p2wsh({
         redeem: {
           input: input.getScriptSatisfaction(
             signatures || 'DANGEROUSLY_USE_FAKE_SIGNATURES'
           ),
-          output: input.getWitnessScript()!
+          output: witnessScript
         }
       })
     });
@@ -109,12 +101,14 @@ function inputBytes(
       vectorSize(payment.witness)
     );
   } else if (expandedExpression.startsWith('sh(')) {
+    const redeemScript = input.getRedeemScript();
+    if (!redeemScript) throw new Error('sh() must provide redeemScript');
     const payment = payments.p2sh({
       redeem: {
         input: input.getScriptSatisfaction(
           signatures || 'DANGEROUSLY_USE_FAKE_SIGNATURES'
         ),
-        output: input.getRedeemScript()!
+        output: redeemScript
       }
     });
     if (!payment || !payment.input) throw new Error('Could not create payment');
@@ -127,12 +121,14 @@ function inputBytes(
       (txHasWitness ? 1 : 0)
     );
   } else if (expandedExpression.startsWith('wsh(')) {
+    const witnessScript = input.getWitnessScript();
+    if (!witnessScript) throw new Error('wsh must provide witnessScript');
     const payment = payments.p2wsh({
       redeem: {
         input: input.getScriptSatisfaction(
           signatures || 'DANGEROUSLY_USE_FAKE_SIGNATURES'
         ),
-        output: input.getWitnessScript()!
+        output: witnessScript
       }
     });
     if (!payment || !payment.input || !payment.witness)
@@ -148,7 +144,7 @@ function inputBytes(
   }
 }
 
-function outputBytes(output: OutputInstance) {
+export function outputBytes(output: OutputInstance) {
   const expandedExpression = output.expand().expandedExpression;
   if (!expandedExpression) throw new Error('Invalid output');
   const errorMsg =
