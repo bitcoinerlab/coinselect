@@ -1,92 +1,147 @@
-//TODO: npm push new version of descriptors with getScriptSatisfactionSize
+// Copyright (c) 2023 Jose-Luis Landabaso - https://bitcoinerlab.com
+// Distributed under the MIT software license
 
-// byteLength: https://github.com/bitcoinjs/bitcoinjs-lib/blob/master/ts_src/transaction.ts
+//TODO: npm push new version of getScriptSatisfaction & delete
+// getScriptSatisfactionSize
+//
+//TODO: update the descriptors README adding the important signersPubKeys
+//TODO: update the stackExchange of bitcoinerlab
+//information in the constructor. Link to stackExchange (and fix it) probably
+//Also I believe that the preimages are also used??? this should be a param no?
+//knownPreimages?
+
 // https://gist.github.com/junderw/b43af3253ea5865ed52cb51c200ac19c
+// Look for byteLength: https://github.com/bitcoinjs/bitcoinjs-lib/blob/master/ts_src/transaction.ts
 // https://bitcoinops.org/en/tools/calc-size/
 // https://github.com/bitcoinjs/coinselect/blob/master/utils.js
 
+import type { PartialSig } from 'bip174/src/lib/interfaces';
 import type { OutputInstance } from '@bitcoinerlab/descriptors';
+import { payments } from 'bitcoinjs-lib';
+import { encodingLength } from 'varuint-bitcoin';
 
-function checkUInt53(n: number) {
-  if (n < 0 || n > Number.MAX_SAFE_INTEGER || n % 1 !== 0)
-    throw new RangeError('value out of range');
+function varSliceSize(someScript: Buffer): number {
+  const length = someScript.length;
+
+  return encodingLength(length) + length;
 }
 
-function varIntLength(number: number) {
-  checkUInt53(number);
+function vectorSize(someVector: Buffer[]): number {
+  const length = someVector.length;
 
-  return number < 0xfd
-    ? 1
-    : number <= 0xffff
-    ? 3
-    : number <= 0xffffffff
-    ? 5
-    : 9;
+  return (
+    encodingLength(length) +
+    someVector.reduce((sum, witness) => {
+      return sum + varSliceSize(witness);
+    }, 0)
+  );
 }
 
-function inputBytes(input: OutputInstance) {
+/**
+ * This function will typically return 73; since it assumes a signature size of
+ * 72 bytes (this is the max size of a DER encoded signature) and it adds 1
+ * extra byte for encoding its length
+ */
+function signatureSize(signature?: PartialSig) {
+  const length = signature?.signature?.length || 72;
+  return encodingLength(length) + length;
+}
+
+//TODO: Dont use bang (!)
+function inputBytes(
+  input: OutputInstance,
+  /**
+   *  If a transaction hasWitness, a single byte is then also required for
+   *  non-witness inputs to encode the length of the empty witness stack:
+   *  encodeLength(0) + 0 = 1
+   *  Read more:
+   * https://gist.github.com/junderw/b43af3253ea5865ed52cb51c200ac19c?permalink_comment_id=4760512#gistcomment-4760512
+   */
+  txHasWitness: boolean,
+  signatures?: Array<PartialSig>
+) {
   const errorMsg =
-    'Input type not implemented. Currently supported: pkh(KEY), wpkh(KEY), sh(wpkh(KEY)), sh(wsh(MINISCRIPT)), sh(MINISCRIPT), wsh(MINISCRIPT)';
+    'Input type not implemented. Currently supported: pkh(KEY), wpkh(KEY), sh(wpkh(KEY)), sh(wsh(MINISCRIPT)), sh(MINISCRIPT), wsh(MINISCRIPT).';
 
   const expandedExpression = input.expand().expandedExpression;
   if (!expandedExpression) throw new Error('Invalid input');
 
   if (expandedExpression.startsWith('pkh(')) {
-    // Non-segwit: (txid:32) + (vout:4) + (sequence:4) + (script_len:1) + (sig:73) + (pubkey:34)
-    return 148 * 4;
-  } else if (expandedExpression.startsWith('wpkh(')) {
-    // Segwit: (push_count:1) + (sig:73) + (pubkey:34)
-    // Non-segwit: (txid:32) + (vout:4) + (sequence:4) + (script_len:1)
-    return 108 + 41 * 4;
-  } else if (expandedExpression.startsWith('sh(wpkh(')) {
-    // Segwit: (push_count:1) + (sig:73) + (pubkey:34)
-    // Non-segwit: (txid:32) + (vout:4) + (sequence:4) + (script_len:1) + (p2wpkh:23)
-    //  -> p2wpkh_script: OP_0 OP_PUSH20 <public_key_hash>
-    //  -> p2wpkh: (script_len:1) + (script:22)
-    return 108 + 64 * 4;
-  } else if (expandedExpression.startsWith('sh(wsh(')) {
-    // Non-segwit: (txid:32) + (vout:4) + (sequence:4) + (script_len:1) + (p2wsh:35)
-    //  -> p2wsh: uses sha256 instead of hash160, so 12 more bytes than that p2wpkh above:
-    //  -> p2wsh_script: OP_0 OP_PUSH32 <sha256_of_script>
-    //  -> p2wsh: (script_len:1) + (script:34)
-    const scriptWitnessSize = input.getScriptSatisfactionSize();
-    if (scriptWitnessSize === undefined) throw new Error(errorMsg);
-    const witnessScriptSize = input.getWitnessScript()?.length;
-    if (witnessScriptSize === undefined) throw new Error(errorMsg);
     return (
-      varIntLength(scriptWitnessSize) +
-      scriptWitnessSize +
-      varIntLength(witnessScriptSize) +
-      witnessScriptSize +
-      76 * 4
+      // Non-segwit: (txid:32) + (vout:4) + (sequence:4) + (script_len:1) + (sig:73) + (pubkey:34)
+      (32 + 4 + 4 + 1 + signatureSize(signatures?.[0]) + 34) * 4 +
+      //Segwit:
+      (txHasWitness ? 1 : 0)
+    );
+  } else if (expandedExpression.startsWith('wpkh(')) {
+    return (
+      // Non-segwit: (txid:32) + (vout:4) + (sequence:4) + (script_len:1)
+      41 * 4 +
+      // Segwit: (push_count:1) + (sig:73) + (pubkey:34)
+      (1 + signatureSize(signatures?.[0]) + 34)
+    );
+  } else if (expandedExpression.startsWith('sh(wpkh(')) {
+    return (
+      // Non-segwit: (txid:32) + (vout:4) + (sequence:4) + (script_len:1) + (p2wpkh:23)
+      //  -> p2wpkh_script: OP_0 OP_PUSH20 <public_key_hash>
+      //  -> p2wpkh: (script_len:1) + (script:22)
+      64 * 4 +
+      // Segwit: (push_count:1) + (sig:73) + (pubkey:34)
+      (1 + signatureSize(signatures?.[0]) + 34)
+    );
+  } else if (expandedExpression.startsWith('sh(wsh(')) {
+    const payment = payments.p2sh({
+      redeem: payments.p2wsh({
+        redeem: {
+          input: input.getScriptSatisfaction(
+            signatures || 'DANGEROUSLY_USE_FAKE_SIGNATURES'
+          ),
+          output: input.getWitnessScript()!
+        }
+      })
+    });
+    if (!payment || !payment.input || !payment.witness)
+      throw new Error('Could not create payment');
+    return (
+      //Non-segwit
+      4 * (40 + varSliceSize(payment.input)) +
+      //Segwit
+      vectorSize(payment.witness)
     );
   } else if (expandedExpression.startsWith('sh(')) {
-    // Regular sh(MINISCRIPT)
-    // Non-segwit: (txid:32) + (vout:4) + (sequence:4) + (locking_len) + (locking) + (unlocking_len) + (unlocking):
-    const scriptSatisfactionSize = input.getScriptSatisfactionSize();
-    if (scriptSatisfactionSize === undefined) throw new Error(errorMsg);
-    const lockingScriptSize = input.getRedeemScript()?.length;
-    if (lockingScriptSize === undefined) throw new Error(errorMsg);
+    const payment = payments.p2sh({
+      redeem: {
+        input: input.getScriptSatisfaction(
+          signatures || 'DANGEROUSLY_USE_FAKE_SIGNATURES'
+        ),
+        output: input.getRedeemScript()!
+      }
+    });
+    if (!payment || !payment.input) throw new Error('Could not create payment');
+    if (payment.witness?.length)
+      throw new Error('A legacy p2sh payment should not cointain a witness');
     return (
-      (varIntLength(scriptSatisfactionSize) +
-        scriptSatisfactionSize +
-        varIntLength(lockingScriptSize) +
-        lockingScriptSize +
-        40) *
-      4
+      //Non-segwit
+      4 * (40 + varSliceSize(payment.input)) +
+      //Segwit:
+      (txHasWitness ? 1 : 0)
     );
   } else if (expandedExpression.startsWith('wsh(')) {
-    // Non-segwit: (txid:32) + (vout:4) + (sequence:4) + (script_len:1)
-    const scriptWitnessSize = input.getScriptSatisfactionSize();
-    if (scriptWitnessSize === undefined) throw new Error(errorMsg);
-    const witnessScriptSize = input.getWitnessScript()?.length;
-    if (witnessScriptSize === undefined) throw new Error(errorMsg);
+    const payment = payments.p2wsh({
+      redeem: {
+        input: input.getScriptSatisfaction(
+          signatures || 'DANGEROUSLY_USE_FAKE_SIGNATURES'
+        ),
+        output: input.getWitnessScript()!
+      }
+    });
+    if (!payment || !payment.input || !payment.witness)
+      throw new Error('Could not create payment');
     return (
-      varIntLength(scriptWitnessSize) +
-      scriptWitnessSize +
-      varIntLength(witnessScriptSize) +
-      witnessScriptSize +
-      41 * 4
+      //Non-segwit
+      4 * (40 + varSliceSize(payment.input)) +
+      //Segwit
+      vectorSize(payment.witness)
     );
   } else {
     throw new Error(errorMsg);
@@ -117,27 +172,33 @@ function outputBytes(output: OutputInstance) {
 
 export function size(
   inputs: Array<OutputInstance>,
-  outputs: Array<OutputInstance>
+  outputs: Array<OutputInstance>,
+  /** For testing purposes only. It can be used to obtain the exact
+   * size of the signatures.
+   * If not passed, then signatures are assumed to be 72 bytes length:
+   * https://transactionfee.info/charts/bitcoin-script-ecdsa-length/
+   */
+  signaturesPerInput?: Array<Array<PartialSig>>
 ) {
   let hasWitness = false;
   let totalWeight = 0;
   inputs.forEach(function (input) {
-    totalWeight += inputBytes(input);
     if (input.isSegwit()) hasWitness = true;
+  });
+  inputs.forEach(function (input, index) {
+    if (signaturesPerInput)
+      totalWeight += inputBytes(input, hasWitness, signaturesPerInput[index]);
+    else totalWeight += inputBytes(input, hasWitness);
   });
   outputs.forEach(function (output) {
     totalWeight += outputBytes(output);
   });
 
-  console.log({ hasWitness });
-
   if (hasWitness) totalWeight += 2;
 
   totalWeight += 8 * 4;
-  totalWeight += varIntLength(inputs.length) * 4;
-  totalWeight += varIntLength(outputs.length) * 4;
-
-  console.log('COMPUTED TEORICAL MAX SIZE', totalWeight / 4);
+  totalWeight += encodingLength(inputs.length) * 4;
+  totalWeight += encodingLength(outputs.length) * 4;
 
   return Math.ceil(totalWeight / 4);
 }
