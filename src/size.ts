@@ -176,11 +176,9 @@ export function size(
    */
   signaturesPerInput?: Array<Array<PartialSig>>
 ) {
-  let hasWitness = false;
+  const hasWitness = inputs.some(input => input.isSegwit());
+
   let totalWeight = 0;
-  inputs.forEach(function (input) {
-    if (input.isSegwit()) hasWitness = true;
-  });
   inputs.forEach(function (input, index) {
     if (signaturesPerInput)
       totalWeight += inputBytes(input, hasWitness, signaturesPerInput[index]);

@@ -7,12 +7,12 @@ import { OutputInstance, signers } from '@bitcoinerlab/descriptors';
 import type { BIP32Interface } from 'bip32';
 
 const regtestUtils = new RegtestUtils();
-import { size, InputOrigin } from '../dist';
+import { size, coinselect, InputOrigin } from '../dist';
 
 const INPUT_VALUE = 10000;
 const FEE_PER_OUTPUT = 10;
 
-import { network, masterNode, transactions } from './fixtures';
+import { network, masterNode, transactions, changeOutput } from './fixtures';
 
 function createPsbt({
   inputs,
@@ -103,6 +103,13 @@ describe('Size', () => {
           network
         });
         const expectedSize = psbt.extractTransaction().virtualSize();
+
+        coinselect({
+          utxos: inputs.map(input => ({ output: input, value: 1000 })),
+          targets: outputs.map(output => ({ output, value: 10 })),
+          feeRate: 1,
+          changeOutput
+        });
 
         //Pass signatures to estimate exact tx vsize (this is not how this
         //lib will be used but is handy for tests):

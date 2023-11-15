@@ -167,4 +167,13 @@ const transactions = inputCombinations.map(
     };
   }
 );
-export { network, masterNode, transactions };
+const changeOutput = new Output({
+  descriptor: scriptExpressions.pkhBIP32({
+    masterNode,
+    network,
+    account: 0,
+    keyPath: '/0/1'
+  }),
+  network
+});
+export { network, masterNode, transactions, changeOutput };
