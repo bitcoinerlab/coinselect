@@ -3,7 +3,7 @@ import { size } from '../size';
 
 /**
  * Include inputs only when they do not exceed the target value.
- * In other words, achieve a precise match.
+ * In other words, achieve an exact match.
  */
 export function avoidChange({
   utxos,
@@ -35,9 +35,15 @@ export function avoidChange({
     );
     const txFeeWithCandidate = Math.ceil(txSizeWithCandidate * feeRate);
 
+    const candidateFeeContribution = txFeeWithCandidate - txFeeSoFar;
+    //For the threshold we assume another input contribution similar
+    //to the current one being added
+    const threshold = candidateFeeContribution;
+
     if (
-      utxosSoFarValue + candidate.value <= targetsValue + txFeeWithCandidate &&
-      utxosSoFarValue + candidate.value >= targetsValue + txFeeSoFar
+      utxosSoFarValue + candidate.value <=
+        targetsValue + txFeeWithCandidate + threshold &&
+      utxosSoFarValue + candidate.value >= targetsValue + txFeeWithCandidate
     )
       return { utxos: [candidate, ...utxosSoFar], targets };
     else utxosSoFar.push(candidate);
