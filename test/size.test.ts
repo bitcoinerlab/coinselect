@@ -105,7 +105,7 @@ describe('Size', () => {
         const expectedSize = psbt.extractTransaction().virtualSize();
 
         coinselect({
-          utxos: inputs.map(input => ({ output: input, value: 1000 })),
+          utxos: inputs.map(input => ({ output: input, value: 600 })),
           targets: outputs.map(output => ({ output, value: 10 })),
           feeRate: 1,
           changeOutput

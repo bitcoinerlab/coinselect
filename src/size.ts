@@ -38,16 +38,16 @@ function signatureSize(signature?: PartialSig) {
   return encodingLength(length) + length;
 }
 
-export function inputBytes(
+export function inputWeight(
   input: OutputInstance,
   /**
-   *  If a transaction hasWitness, a single byte is then also required for
+   *  If a transaction isSegwitTx, a single byte is then also required for
    *  non-witness inputs to encode the length of the empty witness stack:
    *  encodeLength(0) + 0 = 1
    *  Read more:
    * https://gist.github.com/junderw/b43af3253ea5865ed52cb51c200ac19c?permalink_comment_id=4760512#gistcomment-4760512
    */
-  txHasWitness: boolean,
+  isSegwitTx: boolean,
   signatures?: Array<PartialSig>
 ) {
   const errorMsg =
@@ -61,7 +61,7 @@ export function inputBytes(
       // Non-segwit: (txid:32) + (vout:4) + (sequence:4) + (script_len:1) + (sig:73) + (pubkey:34)
       (32 + 4 + 4 + 1 + signatureSize(signatures?.[0]) + 34) * 4 +
       //Segwit:
-      (txHasWitness ? 1 : 0)
+      (isSegwitTx ? 1 : 0)
     );
   } else if (expandedExpression.startsWith('wpkh(')) {
     return (
@@ -118,7 +118,7 @@ export function inputBytes(
       //Non-segwit
       4 * (40 + varSliceSize(payment.input)) +
       //Segwit:
-      (txHasWitness ? 1 : 0)
+      (isSegwitTx ? 1 : 0)
     );
   } else if (expandedExpression.startsWith('wsh(')) {
     const witnessScript = input.getWitnessScript();
@@ -144,7 +144,7 @@ export function inputBytes(
   }
 }
 
-export function outputBytes(output: OutputInstance) {
+export function outputWeight(output: OutputInstance) {
   const expandedExpression = output.expand().expandedExpression;
   if (!expandedExpression) throw new Error('Invalid output');
   const errorMsg =
@@ -176,19 +176,19 @@ export function size(
    */
   signaturesPerInput?: Array<Array<PartialSig>>
 ) {
-  const hasWitness = inputs.some(input => input.isSegwit());
+  const isSegwitTx = inputs.some(input => input.isSegwit());
 
   let totalWeight = 0;
   inputs.forEach(function (input, index) {
     if (signaturesPerInput)
-      totalWeight += inputBytes(input, hasWitness, signaturesPerInput[index]);
-    else totalWeight += inputBytes(input, hasWitness);
+      totalWeight += inputWeight(input, isSegwitTx, signaturesPerInput[index]);
+    else totalWeight += inputWeight(input, isSegwitTx);
   });
   outputs.forEach(function (output) {
-    totalWeight += outputBytes(output);
+    totalWeight += outputWeight(output);
   });
 
-  if (hasWitness) totalWeight += 2;
+  if (isSegwitTx) totalWeight += 2;
 
   totalWeight += 8 * 4;
   totalWeight += encodingLength(inputs.length) * 4;

@@ -3,7 +3,7 @@
 type InputOrigin = { txHex: string; vout: number };
 type OutputAndValue = {
   output: OutputInstance;
-  value?: number;
+  value: number;
 };
 
 import type { OutputInstance } from '@bitcoinerlab/descriptors';

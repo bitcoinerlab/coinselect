@@ -1,67 +1,62 @@
+//TODO: first thing in coinselect and size is to validate the value in all inputs and outputs and throw if number !== integer finite > 0 < 1 Million bitcoin.
+//TODO: allow addr() -> addr(sh) is assumed to be p2shp2wpkh, say so in documentation. If sh is wanted to be used for generic scripts then use sh(miniscript)
+//TODO: allow float feeRate
+//
+//TODO: Test coinselect
+//TODO: Add an algo to send FULL FUNDS to 1 target
+//
 //TODO: feeRate must be integer
 //TODO: note that fee may end up being a float since it's depends on
-//inputBytes, which, depends on my approx: https://github.com/bitcoinjs/coinselect/blob/master/accumulative.js
+//inputWeight, which, depends on my approx: https://github.com/bitcoinjs/coinselect/blob/master/accumulative.js
 //TODO: inputs and outputs are undefined if no solution
 import type { OutputInstance } from '@bitcoinerlab/descriptors';
-const bjsCoinselect = require('coinselect');
-const bjsCoinselectSplit = require('coinselect/split');
-import { inputBytes, outputBytes } from './size';
 import type { OutputAndValue } from './index';
+import { validateFeeRate, validateOutputAndValues } from './validation';
+import { addUntilReach } from './algos/addUntilReach';
+import { avoidChange } from './algos/avoidChange';
+import { inputWeight } from './size';
 
-// Corrects: https://github.com/bitcoinjs/coinselect/blob/master/utils.js
-const TX_INPUT_BASE = 32 + 4 + 1 + 4;
-const TX_OUTPUT_BASE = 8 + 1;
+// order by descending value, minus the inputs approximate fee
+function utxoTransferredValue(
+  outputAndValue: OutputAndValue,
+  feeRate: number,
+  isSegwitTx: boolean
+) {
+  return (
+    outputAndValue.value -
+    (feeRate * inputWeight(outputAndValue.output, isSegwitTx)) / 4
+  );
+}
 
 export function coinselect({
   utxos,
   targets,
-  feeRate,
-  changeOutput
+  change,
+  feeRate
 }: {
   utxos: Array<OutputAndValue>;
   targets: Array<OutputAndValue>;
+  change: OutputInstance;
   feeRate: number;
-  changeOutput: OutputInstance;
 }) {
-  //From coinselect lib:
-  //https://github.com/bitcoinjs/coinselect
-  //Pro-tip: if you want to send-all inputs to an output address, coinselect/split with a partial output (.address defined, no .value) can be used to send-all, while leaving an appropriate amount for the fee.
+  validateOutputAndValues(utxos);
+  validateOutputAndValues(targets);
+  validateFeeRate(feeRate);
 
-  const coinSelectAlgo =
-    targets.length === 1 && typeof targets[0]?.value === 'undefined'
-      ? bjsCoinselectSplit
-      : bjsCoinselect;
+  //We initially assume that the whole tx is segwit even if it ends up not being
+  //segwit. It's segwit if there is at least one segwit utxo:
+  const isSegwitTx = utxos.some(utxo => utxo.output.isSegwit());
 
-  const txHasWitness = utxos.some(utxoInfo => utxoInfo.output.isSegwit());
+  //Sort in descending utxoTransferredValue
+  //[...utxos] because sort mutates the input
+  const sortedUtxos = [...utxos].sort(
+    (a, b) =>
+      utxoTransferredValue(b, feeRate, isSegwitTx) -
+      utxoTransferredValue(a, feeRate, isSegwitTx)
+  );
 
-  let addedExtraWitnessBytes = false;
-
-  const csUtxos = utxos.map(utxo => {
-    if (typeof utxo.value === 'undefined')
-      throw new Error('Provide values to all utxos');
-    const extraWitnessBytes = addedExtraWitnessBytes ? 0 : 2 / 4;
-    addedExtraWitnessBytes = true;
-    return {
-      value: utxo.value,
-      //Corrects: https://github.com/bitcoinjs/coinselect/blob/master/utils.js
-      script: {
-        length:
-          inputBytes(utxo.output, txHasWitness) / 4 -
-          TX_INPUT_BASE +
-          extraWitnessBytes
-      }
-    };
-  });
-  const csTargets = targets.map(target => {
-    return {
-      value: target.value,
-      //Corrects: https://github.com/bitcoinjs/coinselect/blob/master/utils.js
-      script: { length: outputBytes(target.output) / 4 - TX_OUTPUT_BASE }
-    };
-  });
-
-  console.log(changeOutput);
-  console.log(JSON.stringify({ csUtxos, csTargets, feeRate }, null, 2));
-  const { inputs, outputs, fee } = coinSelectAlgo(csUtxos, csTargets, feeRate);
-  console.log(JSON.stringify({ inputs, outputs, fee }, null, 2));
+  return (
+    avoidChange({ utxos: sortedUtxos, targets, feeRate }) ||
+    addUntilReach({ utxos: sortedUtxos, targets, change, feeRate })
+  );
 }
