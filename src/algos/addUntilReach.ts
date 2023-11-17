@@ -46,8 +46,8 @@ export function addUntilReach({
     // If you'd pay more than 1/3 in fees
     // to spend something, then we consider it dust.
     // https://github.com/bitcoin/bitcoin/blob/f90603ac6d24f5263649675d51233f1fce8b2ecd/src/policy/policy.cpp#L20
+    //if (candidate.value >= candidateFeeContribution) {
     if (candidate.value > 3 * candidateFeeContribution) {
-      //if (candidate.value >= candidateFeeContribution) {
       if (
         utxosSoFarValue + candidate.value >=
         targetsValue + txFeeWithCandidate
@@ -56,8 +56,8 @@ export function addUntilReach({
         // Note: Change is added even if it's a small amount ('dust'),
         // as receiving any amount of change back is considered worthwhile.
         const txSizeWithCandidateAndChange = size(
-          [change, candidate.output, ...utxosSoFar.map(utxo => utxo.output)],
-          targets.map(target => target.output)
+          [candidate.output, ...utxosSoFar.map(utxo => utxo.output)],
+          [change, ...targets.map(target => target.output)]
         );
         const txFeeWithCandidateAndChange = Math.ceil(
           txSizeWithCandidateAndChange * feeRate
@@ -67,11 +67,20 @@ export function addUntilReach({
           candidate.value -
           (targetsValue + txFeeWithCandidateAndChange);
 
+        //const threshold = Math.ceil(
+        //  (candidate.output.isSegwit() ? 67.75 : 148) * feeRate
+        //);
         return {
-          utxos: [candidate.output, ...utxosSoFar],
+          utxos: [candidate, ...utxosSoFar],
           targets:
-            changeValue > 0 // Add change if changeValue is positive; ignore if it's minimal ('dust')
-              ? [{ output: change, value: changeValue }, ...targets]
+            // changeValue > threshold
+            // Add change if changeValue is larger than threshold
+
+            // changeValue > 0
+            // Add change if changeValue is positive; ignore if it's minimal ('dust')
+
+            changeValue > 0
+              ? [...targets, { output: change, value: changeValue }]
               : targets
         };
       } else {

@@ -15,7 +15,12 @@ export function avoidChange({
   utxos: Array<OutputAndValue>;
   targets: Array<OutputAndValue>;
   feeRate: number;
-}) {
+}):
+  | undefined
+  | {
+      utxos: Array<OutputAndValue>;
+      targets: Array<OutputAndValue>;
+    } {
   const targetsValue = targets.reduce((a, target) => a + target.value, 0);
   const utxosSoFar: Array<OutputAndValue> = [];
 
@@ -34,13 +39,25 @@ export function avoidChange({
       (candidate.output.isSegwit() ? 67.75 : 148) * feeRate
     );
 
+    console.log({
+      utxosSoFarValue,
+      candidateValue: candidate.value,
+      targetsValue,
+      txFeeWithCandidate,
+      threshold
+    });
+
     if (
       utxosSoFarValue + candidate.value <=
-        targetsValue + txFeeWithCandidate + threshold &&
-      utxosSoFarValue + candidate.value >= targetsValue + txFeeWithCandidate
-    )
-      return { utxos: [candidate, ...utxosSoFar], targets };
-    else utxosSoFar.push(candidate);
+      targetsValue + txFeeWithCandidate + threshold
+    ) {
+      if (
+        utxosSoFarValue + candidate.value >=
+        targetsValue + txFeeWithCandidate
+      )
+        return { utxos: [candidate, ...utxosSoFar], targets };
+      else utxosSoFar.push(candidate);
+    }
   }
   return;
 }

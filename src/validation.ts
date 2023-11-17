@@ -11,6 +11,6 @@ export function validateOutputAndValues(
 }
 export function validateFeeRate(feeRate: number) {
   if (!Number.isFinite(feeRate) || feeRate < 1 || feeRate > 10 * 1000) {
-    throw new Error(`feeRate ${feeRate} not supported`);
+    throw new Error(`Fee rate ${feeRate} not supported`);
   }
 }
