@@ -18,11 +18,12 @@
     "webdocs": "typedoc --options ./node_modules/@bitcoinerlab/configs/webtypedoc.json",
     "docs": "typedoc --options ./node_modules/@bitcoinerlab/configs/typedoc.json",
     "build:src": "tsc --project ./node_modules/@bitcoinerlab/configs/tsconfig.src.json",
-    "build:test": "tsc --project ./node_modules/@bitcoinerlab/configs/tsconfig.test.json",
+    "fixtures": "node test/fixturesFromBjs",
+    "build:test": "tsc --project ./node_modules/@bitcoinerlab/configs/tsconfig.test.json --resolveJsonModule",
     "build": "npm run build:src && npm run build:test",
     "lint": "eslint --ignore-path .gitignore --ext .ts src/ test/",
     "tester": "./node_modules/@bitcoinerlab/configs/scripts/tester.sh",
-    "test": "npm run lint && npm run build && npm run tester && NODE_OPTIONS=\"--experimental-fetch\" jest",
+    "test": "npm run lint && npm run build && npm run fixtures && npm run tester && NODE_OPTIONS=\"--experimental-fetch\" jest",
     "prepublishOnly": "npm test"
   },
   "repository": {
@@ -45,6 +46,8 @@
     "@bitcoinerlab/configs": "github:bitcoinerlab/configs",
     "bip39": "^3.1.0",
     "bip68": "^1.0.4",
+    "fs": "^0.0.1-security",
+    "path": "^0.12.7",
     "regtest-client": "^0.2.1"
   },
   "dependencies": {

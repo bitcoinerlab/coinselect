@@ -1,0 +1,844 @@
+[
+  {
+    "description": "1 output, no change",
+    "feeRate": 10,
+    "expected": {
+      "inputs": [
+        {
+          "i": 0,
+          "value": 102001
+        }
+      ],
+      "outputs": [
+        {
+          "value": 100000
+        }
+      ],
+      "fee": 2001
+    },
+    "utxos": [
+      {
+        "value": 102001,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      }
+    ],
+    "targets": [
+      {
+        "value": 100000,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      }
+    ]
+  },
+  {
+    "description": "1 output, change expected",
+    "feeRate": 5,
+    "expected": {
+      "inputs": [
+        {
+          "i": 0,
+          "value": 106001
+        }
+      ],
+      "outputs": [
+        {
+          "value": 100000
+        },
+        {
+          "value": 4871
+        }
+      ],
+      "fee": 1130
+    },
+    "utxos": [
+      {
+        "value": 106001,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      }
+    ],
+    "targets": [
+      {
+        "value": 100000,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      }
+    ]
+  },
+  {
+    "description": "1 output, sub-optimal inputs (if re-ordered), direct possible",
+    "feeRate": 10,
+    "expected": {
+      "inputs": [
+        {
+          "i": 0,
+          "value": 10000
+        }
+      ],
+      "outputs": [
+        {
+          "value": 7700
+        }
+      ],
+      "fee": 2300
+    },
+    "utxos": [
+      {
+        "value": 10000,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      },
+      {
+        "value": 40000,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      },
+      {
+        "value": 40000,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      }
+    ],
+    "targets": [
+      {
+        "value": 7700,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      }
+    ]
+  },
+  {
+    "description": "1 output, sub-optimal inputs (if re-ordered), direct possible, but slightly higher fee",
+    "feeRate": 10,
+    "expected": {
+      "inputs": [
+        {
+          "i": 0,
+          "value": 10000
+        }
+      ],
+      "outputs": [
+        {
+          "value": 6800
+        }
+      ],
+      "fee": 3200
+    },
+    "utxos": [
+      {
+        "value": 10000,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      },
+      {
+        "value": 40000,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      },
+      {
+        "value": 40000,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      }
+    ],
+    "targets": [
+      {
+        "value": 6800,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      }
+    ]
+  },
+  {
+    "description": "1 output, sub-optimal inputs (if re-ordered, no direct possible), change expected",
+    "feeRate": 5,
+    "expected": {
+      "inputs": [
+        {
+          "i": 1,
+          "value": 40000
+        }
+      ],
+      "outputs": [
+        {
+          "value": 4700
+        },
+        {
+          "value": 34170
+        }
+      ],
+      "fee": 1130
+    },
+    "utxos": [
+      {
+        "value": 10000,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      },
+      {
+        "value": 40000,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      },
+      {
+        "value": 40000,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      }
+    ],
+    "targets": [
+      {
+        "value": 4700,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      }
+    ]
+  },
+  {
+    "description": "1 output, passes, poor ordering but still good",
+    "feeRate": 5,
+    "expected": {
+      "inputs": [
+        {
+          "i": 1,
+          "value": 3000
+        },
+        {
+          "i": 2,
+          "value": 3000
+        }
+      ],
+      "outputs": [
+        {
+          "value": 4000
+        }
+      ],
+      "fee": 2000
+    },
+    "utxos": [
+      {
+        "value": 1035,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      },
+      {
+        "value": 3000,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      },
+      {
+        "value": 3000,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      }
+    ],
+    "targets": [
+      {
+        "value": 4000,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      }
+    ]
+  },
+  {
+    "description": "1 output, passes, improved ordering causing low fee, no waste",
+    "feeRate": 5,
+    "expected": {
+      "inputs": [
+        {
+          "i": 0,
+          "value": 3000
+        },
+        {
+          "i": 1,
+          "value": 3000
+        }
+      ],
+      "outputs": [
+        {
+          "value": 4000
+        }
+      ],
+      "fee": 2000
+    },
+    "utxos": [
+      {
+        "value": 3000,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      },
+      {
+        "value": 3000,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      },
+      {
+        "value": 1535,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      }
+    ],
+    "targets": [
+      {
+        "value": 4000,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      }
+    ]
+  },
+  {
+    "description": "1 output, optimal inputs, no change",
+    "feeRate": 10,
+    "expected": {
+      "inputs": [
+        {
+          "i": 0,
+          "value": 10000
+        }
+      ],
+      "outputs": [
+        {
+          "value": 7700
+        }
+      ],
+      "fee": 2300
+    },
+    "utxos": [
+      {
+        "value": 10000,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      }
+    ],
+    "targets": [
+      {
+        "value": 7700,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      }
+    ]
+  },
+  {
+    "description": "1 output, script provided, no change",
+    "feeRate": 10,
+    "expected": {
+      "inputs": [
+        {
+          "i": 0,
+          "value": 100000
+        }
+      ],
+      "outputs": [
+        {
+          "script": {
+            "length": 200
+          },
+          "value": 95000
+        }
+      ],
+      "fee": 5000
+    },
+    "utxos": [
+      {
+        "value": 100000,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      }
+    ],
+    "targets": [
+      {
+        "value": 96750,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      }
+    ]
+  },
+  {
+    "description": "1 output, script provided, change expected",
+    "feeRate": 10,
+    "expected": {
+      "inputs": [
+        {
+          "i": 0,
+          "value": 200000
+        }
+      ],
+      "outputs": [
+        {
+          "script": {
+            "length": 200
+          },
+          "value": 95000
+        },
+        {
+          "value": 100990
+        }
+      ],
+      "fee": 4010
+    },
+    "utxos": [
+      {
+        "value": 200000,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      }
+    ],
+    "targets": [
+      {
+        "value": 96750,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      }
+    ]
+  },
+  {
+    "description": "1 output, 2 inputs (related), no change",
+    "feeRate": 10,
+    "expected": {
+      "inputs": [
+        {
+          "i": 0,
+          "address": "a",
+          "value": 100000
+        }
+      ],
+      "outputs": [
+        {
+          "value": 98000
+        }
+      ],
+      "fee": 2000
+    },
+    "utxos": [
+      {
+        "value": 100000,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      },
+      {
+        "value": 2000,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      }
+    ],
+    "targets": [
+      {
+        "value": 98000,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      }
+    ]
+  },
+  {
+    "description": "many outputs, no change",
+    "feeRate": 10,
+    "expected": {
+      "inputs": [
+        {
+          "i": 0,
+          "value": 30000
+        },
+        {
+          "i": 1,
+          "value": 12220
+        },
+        {
+          "i": 2,
+          "value": 10001
+        }
+      ],
+      "outputs": [
+        {
+          "value": 35000
+        },
+        {
+          "value": 5000
+        },
+        {
+          "value": 5000
+        },
+        {
+          "value": 1000
+        }
+      ],
+      "fee": 6221
+    },
+    "utxos": [
+      {
+        "value": 30000,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      },
+      {
+        "value": 12220,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      },
+      {
+        "value": 10001,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      }
+    ],
+    "targets": [
+      {
+        "value": 35000,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      },
+      {
+        "value": 5000,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      },
+      {
+        "value": 5000,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      },
+      {
+        "value": 1000,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      }
+    ]
+  },
+  {
+    "description": "many outputs, change expected",
+    "feeRate": 10,
+    "expected": {
+      "inputs": [
+        {
+          "i": 0,
+          "value": 30000
+        },
+        {
+          "i": 1,
+          "value": 14220
+        },
+        {
+          "i": 2,
+          "value": 10001
+        }
+      ],
+      "outputs": [
+        {
+          "value": 35000
+        },
+        {
+          "value": 5000
+        },
+        {
+          "value": 5000
+        },
+        {
+          "value": 1000
+        },
+        {
+          "value": 1981
+        }
+      ],
+      "fee": 6240
+    },
+    "utxos": [
+      {
+        "value": 30000,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      },
+      {
+        "value": 14220,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      },
+      {
+        "value": 10001,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      }
+    ],
+    "targets": [
+      {
+        "value": 35000,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      },
+      {
+        "value": 5000,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      },
+      {
+        "value": 5000,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      },
+      {
+        "value": 1000,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      }
+    ]
+  },
+  {
+    "description": "no outputs, no change",
+    "feeRate": 10,
+    "expected": {
+      "inputs": [
+        {
+          "i": 0,
+          "value": 1900
+        }
+      ],
+      "outputs": [],
+      "fee": 1900
+    },
+    "utxos": [
+      {
+        "value": 1900,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      }
+    ],
+    "targets": []
+  },
+  {
+    "description": "no outputs, change expected",
+    "feeRate": 10,
+    "expected": {
+      "inputs": [
+        {
+          "i": 0,
+          "value": 20000
+        }
+      ],
+      "outputs": [
+        {
+          "value": 18080
+        }
+      ],
+      "fee": 1920
+    },
+    "utxos": [
+      {
+        "value": 20000,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      }
+    ],
+    "targets": []
+  },
+  {
+    "description": "inputs used in order of DESCENDING",
+    "feeRate": 10,
+    "expected": {
+      "fee": 5000,
+      "inputs": [
+        {
+          "i": 0,
+          "value": 20000
+        },
+        {
+          "i": 2,
+          "value": 10000
+        }
+      ],
+      "outputs": [
+        {
+          "value": 25000
+        }
+      ]
+    },
+    "utxos": [
+      {
+        "value": 20000,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      },
+      {
+        "value": 8070,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      },
+      {
+        "value": 10000,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      }
+    ],
+    "targets": [
+      {
+        "value": 25000,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      }
+    ]
+  },
+  {
+    "description": "not enough funds, empty result",
+    "feeRate": 10,
+    "expected": {
+      "fee": 1920
+    },
+    "utxos": [
+      {
+        "value": 20000,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      }
+    ],
+    "targets": [
+      {
+        "value": 40000,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      }
+    ]
+  },
+  {
+    "description": "not enough funds (w/ fee), empty result",
+    "feeRate": 10,
+    "expected": {
+      "fee": 1920
+    },
+    "utxos": [
+      {
+        "value": 40000,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      }
+    ],
+    "targets": [
+      {
+        "value": 40000,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      }
+    ]
+  },
+  {
+    "description": "not enough funds (no inputs), empty result",
+    "feeRate": 10,
+    "expected": {
+      "fee": 100
+    },
+    "utxos": [],
+    "targets": []
+  },
+  {
+    "description": "not enough funds (no inputs), empty result (>1KiB)",
+    "feeRate": 10,
+    "expected": {
+      "fee": 9960
+    },
+    "utxos": [],
+    "targets": [
+      {
+        "value": 1,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      },
+      {
+        "value": 1,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      },
+      {
+        "value": 1,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      },
+      {
+        "value": 1,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      },
+      {
+        "value": 1,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      },
+      {
+        "value": 1,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      },
+      {
+        "value": 1,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      },
+      {
+        "value": 1,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      },
+      {
+        "value": 1,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      },
+      {
+        "value": 1,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      },
+      {
+        "value": 1,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      },
+      {
+        "value": 1,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      },
+      {
+        "value": 1,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      },
+      {
+        "value": 1,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      },
+      {
+        "value": 1,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      },
+      {
+        "value": 1,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      },
+      {
+        "value": 1,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      },
+      {
+        "value": 1,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      },
+      {
+        "value": 1,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      },
+      {
+        "value": 1,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      },
+      {
+        "value": 1,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      },
+      {
+        "value": 1,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      },
+      {
+        "value": 1,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      },
+      {
+        "value": 1,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      },
+      {
+        "value": 1,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      },
+      {
+        "value": 1,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      },
+      {
+        "value": 1,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      },
+      {
+        "value": 1,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      },
+      {
+        "value": 1,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      }
+    ]
+  },
+  {
+    "description": "input with float values (NaN)",
+    "feeRate": 10,
+    "expected": {
+      "fee": 2260
+    },
+    "utxos": [
+      {
+        "value": 20000.5,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      }
+    ],
+    "targets": [
+      {
+        "value": 10000,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      },
+      {
+        "value": 1200,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      }
+    ]
+  },
+  {
+    "description": "2 outputs, with float values (NaN)",
+    "feeRate": 10,
+    "expected": {
+      "fee": 2260
+    },
+    "utxos": [
+      {
+        "value": 20000,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      }
+    ],
+    "targets": [
+      {
+        "value": 10000.25,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      },
+      {
+        "value": 1200.5,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      }
+    ]
+  }
+]
