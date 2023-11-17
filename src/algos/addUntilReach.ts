@@ -5,6 +5,8 @@ import { size } from '../size';
 /**
  * Continuously incorporate inputs until the target value is met or exceeded,
  * or until inputs are exhausted.
+ *
+ * utxos passed must be ordered in descending (value - fee contribution)
  */
 export function addUntilReach({
   utxos,
@@ -12,9 +14,6 @@ export function addUntilReach({
   change,
   feeRate
 }: {
-  /**
-   * utxos are ordered in descending (value - fee contribution)
-   */
   utxos: Array<OutputAndValue>;
   targets: Array<OutputAndValue>;
   change: OutputInstance;
@@ -32,6 +31,7 @@ export function addUntilReach({
     const utxosSoFarValue = utxosSoFar.reduce((a, utxo) => a + utxo.value, 0);
 
     const txFeeSoFar = Math.ceil(txSizeSoFar * feeRate);
+
     const txSizeWithCandidate = size(
       [candidate.output, ...utxosSoFar.map(utxo => utxo.output)],
       targets.map(target => target.output)
@@ -39,8 +39,10 @@ export function addUntilReach({
     const txFeeWithCandidate = Math.ceil(txSizeWithCandidate * feeRate);
 
     const candidateFeeContribution = txFeeWithCandidate - txFeeSoFar;
+
     if (candidateFeeContribution < 0)
       throw new Error(`candidateFeeContribution < 0`);
+
     // If you'd pay more than 1/3 in fees
     // to spend something, then we consider it dust.
     // https://github.com/bitcoin/bitcoin/blob/f90603ac6d24f5263649675d51233f1fce8b2ecd/src/policy/policy.cpp#L20
@@ -50,6 +52,9 @@ export function addUntilReach({
         utxosSoFarValue + candidate.value >=
         targetsValue + txFeeWithCandidate
       ) {
+        // Evaluate if adding change is beneficial (is changeValue > 0?).
+        // Note: Change is added even if it's a small amount ('dust'),
+        // as receiving any amount of change back is considered worthwhile.
         const txSizeWithCandidateAndChange = size(
           [change, candidate.output, ...utxosSoFar.map(utxo => utxo.output)],
           targets.map(target => target.output)
@@ -65,7 +70,7 @@ export function addUntilReach({
         return {
           utxos: [candidate.output, ...utxosSoFar],
           targets:
-            changeValue > 0
+            changeValue > 0 // Add change if changeValue is positive; ignore if it's minimal ('dust')
               ? [{ output: change, value: changeValue }, ...targets]
               : targets
         };

@@ -4,15 +4,14 @@ import { size } from '../size';
 /**
  * Include inputs only when they do not exceed the target value.
  * In other words, achieve an exact match.
+ *
+ * utxos passed must be ordered in descending (value - fee contribution)
  */
 export function avoidChange({
   utxos,
   targets,
   feeRate
 }: {
-  /**
-   * utxos are ordered in descending (value - fee contribution)
-   */
   utxos: Array<OutputAndValue>;
   targets: Array<OutputAndValue>;
   feeRate: number;
@@ -21,24 +20,19 @@ export function avoidChange({
   const utxosSoFar: Array<OutputAndValue> = [];
 
   for (const candidate of utxos) {
-    const txSizeSoFar = size(
-      utxosSoFar.map(utxo => utxo.output),
-      targets.map(target => target.output)
-    );
-
     const utxosSoFarValue = utxosSoFar.reduce((a, utxo) => a + utxo.value, 0);
 
-    const txFeeSoFar = Math.ceil(txSizeSoFar * feeRate);
     const txSizeWithCandidate = size(
       [candidate.output, ...utxosSoFar.map(utxo => utxo.output)],
       targets.map(target => target.output)
     );
     const txFeeWithCandidate = Math.ceil(txSizeWithCandidate * feeRate);
 
-    const candidateFeeContribution = txFeeWithCandidate - txFeeSoFar;
-    //For the threshold we assume another input contribution similar
-    //to the current one being added
-    const threshold = candidateFeeContribution;
+    //For the threshold we assume fee contribution of typical inputs:
+    //https://github.com/bitcoin/bitcoin/blob/f90603ac6d24f5263649675d51233f1fce8b2ecd/src/policy/policy.cpp#L42
+    const threshold = Math.ceil(
+      (candidate.output.isSegwit() ? 67.75 : 148) * feeRate
+    );
 
     if (
       utxosSoFarValue + candidate.value <=
