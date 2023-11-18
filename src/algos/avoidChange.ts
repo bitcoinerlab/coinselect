@@ -1,4 +1,4 @@
-import type { OutputAndValue } from '../index';
+import type { OutputWithValue } from '../index';
 import { size } from '../size';
 
 /**
@@ -12,17 +12,17 @@ export function avoidChange({
   targets,
   feeRate
 }: {
-  utxos: Array<OutputAndValue>;
-  targets: Array<OutputAndValue>;
+  utxos: Array<OutputWithValue>;
+  targets: Array<OutputWithValue>;
   feeRate: number;
 }):
   | undefined
   | {
-      utxos: Array<OutputAndValue>;
-      targets: Array<OutputAndValue>;
+      utxos: Array<OutputWithValue>;
+      targets: Array<OutputWithValue>;
     } {
   const targetsValue = targets.reduce((a, target) => a + target.value, 0);
-  const utxosSoFar: Array<OutputAndValue> = [];
+  const utxosSoFar: Array<OutputWithValue> = [];
 
   for (const candidate of utxos) {
     const utxosSoFarValue = utxosSoFar.reduce((a, utxo) => a + utxo.value, 0);

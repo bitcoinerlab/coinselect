@@ -1,5 +1,5 @@
 import type { OutputInstance } from '@bitcoinerlab/descriptors';
-import type { OutputAndValue } from '../index';
+import type { OutputWithValue } from '../index';
 import { size } from '../size';
 
 /**
@@ -14,13 +14,13 @@ export function addUntilReach({
   change,
   feeRate
 }: {
-  utxos: Array<OutputAndValue>;
-  targets: Array<OutputAndValue>;
+  utxos: Array<OutputWithValue>;
+  targets: Array<OutputWithValue>;
   change: OutputInstance;
   feeRate: number;
 }) {
   const targetsValue = targets.reduce((a, target) => a + target.value, 0);
-  const utxosSoFar: Array<OutputAndValue> = [];
+  const utxosSoFar: Array<OutputWithValue> = [];
 
   for (const candidate of utxos) {
     const txSizeSoFar = size(

@@ -1,6 +1,6 @@
-import type { OutputAndValue } from './index';
-export function validateOutputAndValues(
-  outputAndValues: Array<OutputAndValue>
+import type { OutputWithValue } from './index';
+export function validateOutputWithValues(
+  outputAndValues: Array<OutputWithValue>
 ) {
   for (const outputAndValue of outputAndValues) {
     const value = outputAndValue.value;

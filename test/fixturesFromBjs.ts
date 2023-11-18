@@ -57,6 +57,16 @@ const processFixtures = (
           `Discarding (BAD FEE: ${fixture.feeRate}) - ${fixture.description}`
         );
         return;
+      } else if (fixture.description.includes('NaN')) {
+        console.log(`Discarding (NaN TESTS - ${fixture.description}`);
+        return;
+      } else if (
+        fixture.description.includes('inputs used in order of DESCENDING')
+      ) {
+        //See reasons here:
+        //https://github.com/bitcoinjs/coinselect/issues/86
+        console.log(`Discarding specific test - ${fixture.description}`);
+        return;
       } else {
         const feeRate = Number(fixture.feeRate);
         const utxos = fixture.inputs
@@ -128,6 +138,7 @@ const processFixtures = (
         ) {
           return {
             description: fixture.description,
+            change: descriptor,
             feeRate: fixture.feeRate,
             expected: fixture.expected,
             utxos,
@@ -150,8 +161,8 @@ processFixtures(
   path.join(__dirname, './fixtures/coinselect.json'),
   'addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)'
 );
-//processFixtures(
-//  './fixtures/accumulateBjs.json',
-//  './fixtures/accumulate.json',
-//  'addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)'
-//);
+processFixtures(
+  './fixtures/accumulativeBjs.json',
+  path.join(__dirname, './fixtures/accumulative.json'),
+  'addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)'
+);

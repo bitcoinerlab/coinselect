@@ -10,15 +10,15 @@
 //inputWeight, which, depends on my approx: https://github.com/bitcoinjs/coinselect/blob/master/accumulative.js
 //TODO: inputs and outputs are undefined if no solution
 import type { OutputInstance } from '@bitcoinerlab/descriptors';
-import type { OutputAndValue } from './index';
-import { validateFeeRate, validateOutputAndValues } from './validation';
+import type { OutputWithValue } from './index';
+import { validateFeeRate, validateOutputWithValues } from './validation';
 import { addUntilReach } from './algos/addUntilReach';
 import { avoidChange } from './algos/avoidChange';
 import { inputWeight } from './size';
 
 // order by descending value, minus the inputs approximate fee
 function utxoTransferredValue(
-  outputAndValue: OutputAndValue,
+  outputAndValue: OutputWithValue,
   feeRate: number,
   isSegwitTx: boolean
 ) {
@@ -34,18 +34,18 @@ export function coinselect({
   change,
   feeRate
 }: {
-  utxos: Array<OutputAndValue>;
-  targets: Array<OutputAndValue>;
+  utxos: Array<OutputWithValue>;
+  targets: Array<OutputWithValue>;
   change: OutputInstance;
   feeRate: number;
 }):
   | undefined
   | {
-      utxos: Array<OutputAndValue>;
-      targets: Array<OutputAndValue>;
+      utxos: Array<OutputWithValue>;
+      targets: Array<OutputWithValue>;
     } {
-  validateOutputAndValues(utxos);
-  validateOutputAndValues(targets);
+  validateOutputWithValues(utxos);
+  validateOutputWithValues(targets);
   validateFeeRate(feeRate);
 
   //We will assume that the tx is segwit if there is at least one segwit

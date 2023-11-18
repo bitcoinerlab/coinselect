@@ -65,6 +65,40 @@
     ]
   },
   {
+    "description": "1 output, change expected, value > 2^32",
+    "change": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)",
+    "feeRate": 5,
+    "expected": {
+      "inputs": [
+        {
+          "i": 0,
+          "value": 5000000000
+        }
+      ],
+      "outputs": [
+        {
+          "value": 1
+        },
+        {
+          "value": 4999998869
+        }
+      ],
+      "fee": 1130
+    },
+    "utxos": [
+      {
+        "value": 5000000000,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      }
+    ],
+    "targets": [
+      {
+        "value": 1,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      }
+    ]
+  },
+  {
     "description": "1 output, sub-optimal inputs (if re-ordered), direct possible",
     "change": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)",
     "feeRate": 10,
@@ -149,8 +183,8 @@
     "expected": {
       "inputs": [
         {
-          "i": 1,
-          "value": 40000
+          "i": 0,
+          "value": 10000
         }
       ],
       "outputs": [
@@ -158,7 +192,7 @@
           "value": 4700
         },
         {
-          "value": 34170
+          "value": 4170
         }
       ],
       "fee": 1130
@@ -185,11 +219,42 @@
     ]
   },
   {
-    "description": "1 output, passes, poor ordering but still good",
+    "description": "1 output, fails, skips (and finishes on) detrimental input",
+    "change": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)",
+    "feeRate": 55,
+    "expected": {
+      "fee": 18700
+    },
+    "utxos": [
+      {
+        "value": 44000,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      },
+      {
+        "value": 800,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      }
+    ],
+    "targets": [
+      {
+        "value": 38000,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      }
+    ]
+  },
+  {
+    "description": "1 output, passes, poor ordering causing high fee",
     "change": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)",
     "feeRate": 5,
     "expected": {
       "inputs": [
+        {
+          "i": 0,
+          "script": {
+            "length": 500
+          },
+          "value": 3000
+        },
         {
           "i": 1,
           "value": 3000
@@ -204,7 +269,7 @@
           "value": 4000
         }
       ],
-      "fee": 2000
+      "fee": 5000
     },
     "utxos": [
       {
