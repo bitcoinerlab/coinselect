@@ -1,4 +1,4 @@
-import { coinselect, OutputWithValue } from '../dist';
+import { coinselect, addUntilReach, OutputWithValue } from '../dist';
 import * as secp256k1 from '@bitcoinerlab/secp256k1';
 import { DescriptorsFactory } from '@bitcoinerlab/descriptors';
 const { Output } = DescriptorsFactory(secp256k1);
@@ -7,12 +7,14 @@ import fixturesCoinselect from './fixtures/coinselect.json';
 import fixturesAccumulative from './fixtures/accumulative.json';
 
 for (const fixturesWithDescription of [
-  { fixtures: fixturesCoinselect, description: 'coinselect' },
-  { fixtures: fixturesAccumulative, description: 'accumulative' }
+  { fixtures: fixturesCoinselect, setDescription: 'coinselect' },
+  { fixtures: fixturesAccumulative, setDescription: 'accumulative' }
 ]) {
-  describe(fixturesWithDescription.description, () => {
-    for (const fixture of fixturesWithDescription.fixtures) {
+  const { fixtures, setDescription } = fixturesWithDescription;
+  describe(setDescription, () => {
+    for (const fixture of fixtures) {
       test(fixture.description, () => {
+        console.log(fixture.description);
         const utxos = fixture.utxos.map(utxo => ({
           value: utxo.value,
           output: new Output({ descriptor: utxo.descriptor })
@@ -21,12 +23,20 @@ for (const fixturesWithDescription of [
           value: target.value,
           output: new Output({ descriptor: target.descriptor })
         }));
-        const coinselected = coinselect({
-          utxos: utxos as Array<OutputWithValue>,
-          targets: targets as Array<OutputWithValue>,
-          change: new Output({ descriptor: fixture.change }),
-          feeRate: fixture.feeRate
-        });
+        const coinselected =
+          setDescription === 'coinselect'
+            ? coinselect({
+                utxos: utxos as Array<OutputWithValue>,
+                targets: targets as Array<OutputWithValue>,
+                change: new Output({ descriptor: fixture.change }),
+                feeRate: fixture.feeRate
+              })
+            : addUntilReach({
+                utxos: utxos as Array<OutputWithValue>,
+                targets: targets as Array<OutputWithValue>,
+                change: new Output({ descriptor: fixture.change }),
+                feeRate: fixture.feeRate
+              });
         expect(coinselected ? coinselected.targets.length : 0).toBe(
           fixture.expected?.outputs?.length || 0
         );
@@ -36,13 +46,8 @@ for (const fixturesWithDescription of [
           fixture.expected.outputs.length > fixture.targets.length
         ) {
           const lastExpectedOutput =
-            fixture.expected.outputs![fixture.expected.outputs!.length! - 1]!;
-          if (typeof lastExpectedOutput === 'undefined')
-            throw new Error('lastExpectedOutput');
-          changeValue =
-            typeof lastExpectedOutput === 'number'
-              ? lastExpectedOutput
-              : lastExpectedOutput.value;
+            fixture.expected.outputs[fixture.expected.outputs.length - 1]!;
+          changeValue = lastExpectedOutput.value;
         }
         if (changeValue !== undefined && coinselected) {
           expect(

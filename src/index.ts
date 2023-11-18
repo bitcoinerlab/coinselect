@@ -9,4 +9,13 @@ type OutputWithValue = {
 import type { OutputInstance } from '@bitcoinerlab/descriptors';
 import { size } from './size';
 import { coinselect } from './coinselect';
-export { size, coinselect, InputOrigin, OutputWithValue };
+import { addUntilReach } from './algos/addUntilReach';
+import { avoidChange } from './algos/avoidChange';
+export {
+  size,
+  coinselect,
+  addUntilReach,
+  avoidChange,
+  InputOrigin,
+  OutputWithValue
+};
