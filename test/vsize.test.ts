@@ -96,7 +96,7 @@ describe('vsize', () => {
           txSize + Math.ceil(upperLimit)
         );
       },
-      //This is a long test - couple of minutes
+      //This is a long test - leave it couple of minutes
       2 * 60 * 1000
     );
   }

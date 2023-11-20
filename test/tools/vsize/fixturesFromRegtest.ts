@@ -84,6 +84,29 @@ const connectToRegtest = async () => {
   await regtestUtils.mine(100);
 };
 
+const parse = (
+  outputs: Array<{ descriptor: string; signersPubKeys?: Array<Buffer> }>
+) =>
+  outputs.map(output => {
+    const parsed: {
+      descriptor: string;
+      signersPubKeys?: Array<string>;
+      standardAddr?: string;
+    } = {
+      descriptor: output.descriptor
+    };
+    if (output.signersPubKeys) {
+      //We pass signersPubKeys for wsh(MINISCRIPT), sh(MINISCRIPT), shWsh(MINISCRIPT)
+      parsed.signersPubKeys = output.signersPubKeys.map(signerPubKey =>
+        signerPubKey.toString('hex')
+      );
+    } else {
+      //We also compute standard addresses for the rest (the non-miniscript based)
+      parsed.standardAddr = new Output({ ...output, network }).getAddress();
+    }
+    return parsed;
+  });
+
 const generateFixtures = async () => {
   const fixtures: FixturesMap = {};
   for (const [index, transaction] of Object.entries(transactions)) {
@@ -118,20 +141,6 @@ const generateFixtures = async () => {
     const tx = psbt.extractTransaction();
     const vsize = tx.virtualSize();
 
-    const serialize = (
-      outputs: Array<{ descriptor: string; signersPubKeys?: Array<Buffer> }>
-    ) =>
-      outputs.map(output => {
-        const parsed: { descriptor: string; signersPubKeys?: Array<string> } = {
-          descriptor: output.descriptor
-        };
-        if (output.signersPubKeys) {
-          parsed.signersPubKeys = output.signersPubKeys.map(signerPubKey =>
-            signerPubKey.toString('hex')
-          );
-        }
-        return parsed;
-      });
     // Serializing signaturesPerInput
     const serializedSignatures = signaturesPerInput.map(signatures =>
       signatures.map(sig => ({
@@ -140,14 +149,46 @@ const generateFixtures = async () => {
       }))
     );
 
+    //Provide descriptors using script expresssions
     fixtures[transaction.info] = {
       fixture: transaction.info,
-      inputs: serialize(transaction.inputs),
-      outputs: serialize(transaction.outputs),
+      //extract the standardAddr prop from the parsed object array:
+      inputs: parse(transaction.inputs).map(({ standardAddr: _, ...r }) => r),
+      outputs: parse(transaction.outputs).map(({ standardAddr: _, ...r }) => r),
       psbt: psbt.toBase64(),
       signaturesPerInput: serializedSignatures,
       vsize
     };
+
+    //Also provide an alternative addr() descriptor format when not being
+    //miniscript-based
+    if (
+      parse(transaction.inputs).some(input => 'standardAddr' in input) ||
+      parse(transaction.outputs).some(output => 'standardAddr' in output)
+    ) {
+      const info = `Using addr() descriptors - ${transaction.info}`;
+      console.log(
+        `\tAlso generating addr() version: ${index}/${transactions.length} - ${transaction.info}`
+      );
+      fixtures[info] = {
+        fixture: info,
+        //Use the standardAddr prop from the parsed object array to create a new descriptor:
+        inputs: parse(transaction.inputs).map(({ standardAddr, ...rest }) => ({
+          ...rest,
+          descriptor: standardAddr ? `addr(${standardAddr})` : rest.descriptor
+        })),
+        outputs: parse(transaction.outputs).map(
+          ({ standardAddr, ...rest }) => ({
+            ...rest,
+            descriptor: standardAddr ? `addr(${standardAddr})` : rest.descriptor
+          })
+        ),
+
+        psbt: psbt.toBase64(),
+        signaturesPerInput: serializedSignatures,
+        vsize
+      };
+    }
   }
 
   fs.writeFileSync(fixturesPath, JSON.stringify(fixtures, null, 2), 'utf8');

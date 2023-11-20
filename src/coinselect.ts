@@ -1,10 +1,10 @@
 //TODO: add tests for the addr() size for inputs and outputs: addresses types: pkh, wpkh, sh(wpkh)
-//  -> addr(sh) is assumed to be p2shp2wpkh, say so in documentation. If sh is wanted to be used for generic scripts then use sh(miniscript)
 //TODO: test send max funds
 //TODO: Add a way to receive change. Pass one vout with empty value. Then check is one at most. Or pass a  "remainder"? But then you must pass the target value.
 //TODO: note that fee may end up being a float since it's depends on
 //inputWeight, which, depends on my approx: https://github.com/bitcoinjs/coinselect/blob/master/accumulative.js
 //TODO: inputs and outputs are undefined if no solution
+//TODO addr(sh) is assumed to be p2shp2wpkh, say so in documentation. If sh is wanted to be used for generic scripts then use sh(miniscript)
 import type { OutputInstance } from '@bitcoinerlab/descriptors';
 import { OutputWithValue, DUST_RELAY_FEE_RATE } from './index';
 import { validateFeeRate, validateOutputWithValues } from './validation';

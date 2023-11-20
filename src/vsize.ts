@@ -111,6 +111,7 @@ export function inputWeight(
       (isSegwitTx ? 1 : 0)
     );
   } else if (expansion ? expansion.startsWith('wpkh(') : isWPKH) {
+    if (!isSegwitTx) throw new Error('Should be SegwitTx');
     return (
       // Non-segwit: (txid:32) + (vout:4) + (sequence:4) + (script_len:1)
       41 * 4 +
@@ -118,6 +119,7 @@ export function inputWeight(
       (1 + signatureSize(signatures?.[0]) + 34)
     );
   } else if (expansion ? expansion.startsWith('sh(wpkh(') : isSH) {
+    if (!isSegwitTx) throw new Error('Should be SegwitTx');
     return (
       // Non-segwit: (txid:32) + (vout:4) + (sequence:4) + (script_len:1) + (p2wpkh:23)
       //  -> p2wpkh_script: OP_0 OP_PUSH20 <public_key_hash>
@@ -127,6 +129,7 @@ export function inputWeight(
       (1 + signatureSize(signatures?.[0]) + 34)
     );
   } else if (expansion?.startsWith('sh(wsh(')) {
+    if (!isSegwitTx) throw new Error('Should be SegwitTx');
     const witnessScript = input.getWitnessScript();
     if (!witnessScript) throw new Error('sh(wsh) must provide witnessScript');
     const payment = payments.p2sh({
@@ -235,7 +238,15 @@ export function vsize(
    */
   signaturesPerInput?: Array<Array<PartialSig>>
 ) {
-  const isSegwitTx = inputs.some(input => input.isSegwit());
+  const isSegwitTx = inputs.some(input => {
+    const isSegwit = input.isSegwit();
+    const expansion = input.expand().expandedExpression;
+    const { isPKH, isWPKH, isSH } = guessOutput(input);
+    if (!expansion && !isPKH && !isWPKH && !isSH)
+      throw new Error('Incompatible expansion and output');
+    //we will assume that any addr(SH_TYPE_ADDRESS) is in fact SH_WPKH.
+    return isSegwit !== undefined ? isSegwit : isWPKH || (isSH && !expansion);
+  });
 
   let totalWeight = 0;
   inputs.forEach(function (input, index) {
