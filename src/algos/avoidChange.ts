@@ -1,5 +1,6 @@
-import type { OutputWithValue } from '../index';
-import { size } from '../size';
+import { DUST_RELAY_FEE_RATE, OutputWithValue } from '../index';
+import { validateFeeRate, validateOutputWithValues } from '../validation';
+import { vsize } from '../vsize';
 
 /**
  * Include inputs only when they do not exceed the target value.
@@ -10,43 +11,46 @@ import { size } from '../size';
 export function avoidChange({
   utxos,
   targets,
-  feeRate
+  feeRate,
+  dustRelayFeeRate = DUST_RELAY_FEE_RATE
 }: {
   utxos: Array<OutputWithValue>;
   targets: Array<OutputWithValue>;
   feeRate: number;
+  dustRelayFeeRate?: number;
 }):
   | undefined
   | {
       utxos: Array<OutputWithValue>;
       targets: Array<OutputWithValue>;
     } {
+  validateOutputWithValues(utxos);
+  validateOutputWithValues(targets);
+  validateFeeRate(feeRate);
+  validateFeeRate(dustRelayFeeRate);
+  if (utxos.length === 0 || targets.length === 0) return;
+
   const targetsValue = targets.reduce((a, target) => a + target.value, 0);
   const utxosSoFar: Array<OutputWithValue> = [];
+
+  if (utxos.length === 0 || targets.length === 0) return;
 
   for (const candidate of utxos) {
     const utxosSoFarValue = utxosSoFar.reduce((a, utxo) => a + utxo.value, 0);
 
-    const txSizeWithCandidate = size(
+    const txSizeWithCandidate = vsize(
       [candidate.output, ...utxosSoFar.map(utxo => utxo.output)],
       targets.map(target => target.output)
     );
     const txFeeWithCandidate = Math.ceil(txSizeWithCandidate * feeRate);
 
-    //For the threshold we assume fee contribution of typical inputs:
-    //https://github.com/bitcoin/bitcoin/blob/f90603ac6d24f5263649675d51233f1fce8b2ecd/src/policy/policy.cpp#L42
-    const threshold = Math.ceil(
-      (candidate.output.isSegwit() ? 67.75 : 148) * feeRate
-    );
+    // https://github.com/bitcoin/bitcoin/blob/d752349029ec7a76f1fd440db2ec2e458d0f3c99/src/policy/policy.cpp#L26
 
-    console.log({
-      utxosSoFarValue,
-      candidateValue: candidate.value,
-      targetsValue,
-      txFeeWithCandidate,
-      threshold
-    });
-
+    const threshold =
+      dustRelayFeeRate *
+      (candidate.output.isSegwit()
+        ? /*wpkh out:*/ 31 + /*wpkh in:*/ (32 + 4 + 1 + 107 / 4 + 4)
+        : /*pkh out:*/ 34 + /*pkh in:*/ 32 + 4 + 1 + 107 + 4);
     if (
       utxosSoFarValue + candidate.value <=
       targetsValue + txFeeWithCandidate + threshold

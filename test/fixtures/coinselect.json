@@ -1,7 +1,7 @@
 [
   {
     "description": "1 output, no change",
-    "change": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)",
+    "remainder": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)",
     "feeRate": 10,
     "expected": {
       "inputs": [
@@ -32,7 +32,7 @@
   },
   {
     "description": "1 output, change expected",
-    "change": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)",
+    "remainder": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)",
     "feeRate": 5,
     "expected": {
       "inputs": [
@@ -66,7 +66,7 @@
   },
   {
     "description": "1 output, sub-optimal inputs (if re-ordered), direct possible",
-    "change": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)",
+    "remainder": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)",
     "feeRate": 10,
     "expected": {
       "inputs": [
@@ -105,7 +105,7 @@
   },
   {
     "description": "1 output, sub-optimal inputs (if re-ordered), direct possible, but slightly higher fee",
-    "change": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)",
+    "remainder": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)",
     "feeRate": 10,
     "expected": {
       "inputs": [
@@ -144,7 +144,7 @@
   },
   {
     "description": "1 output, sub-optimal inputs (if re-ordered, no direct possible), change expected",
-    "change": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)",
+    "remainder": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)",
     "feeRate": 5,
     "expected": {
       "inputs": [
@@ -186,7 +186,7 @@
   },
   {
     "description": "1 output, passes, poor ordering but still good",
-    "change": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)",
+    "remainder": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)",
     "feeRate": 5,
     "expected": {
       "inputs": [
@@ -229,7 +229,7 @@
   },
   {
     "description": "1 output, passes, improved ordering causing low fee, no waste",
-    "change": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)",
+    "remainder": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)",
     "feeRate": 5,
     "expected": {
       "inputs": [
@@ -272,7 +272,7 @@
   },
   {
     "description": "1 output, optimal inputs, no change",
-    "change": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)",
+    "remainder": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)",
     "feeRate": 10,
     "expected": {
       "inputs": [
@@ -303,7 +303,7 @@
   },
   {
     "description": "1 output, script provided, no change",
-    "change": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)",
+    "remainder": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)",
     "feeRate": 10,
     "expected": {
       "inputs": [
@@ -337,7 +337,7 @@
   },
   {
     "description": "1 output, script provided, change expected",
-    "change": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)",
+    "remainder": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)",
     "feeRate": 10,
     "expected": {
       "inputs": [
@@ -374,7 +374,7 @@
   },
   {
     "description": "1 output, 2 inputs (related), no change",
-    "change": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)",
+    "remainder": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)",
     "feeRate": 10,
     "expected": {
       "inputs": [
@@ -410,7 +410,7 @@
   },
   {
     "description": "many outputs, no change",
-    "change": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)",
+    "remainder": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)",
     "feeRate": 10,
     "expected": {
       "inputs": [
@@ -478,7 +478,7 @@
   },
   {
     "description": "many outputs, change expected",
-    "change": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)",
+    "remainder": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)",
     "feeRate": 10,
     "expected": {
       "inputs": [
@@ -549,7 +549,7 @@
   },
   {
     "description": "no outputs, no change",
-    "change": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)",
+    "remainder": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)",
     "feeRate": 10,
     "expected": {
       "inputs": [
@@ -571,7 +571,7 @@
   },
   {
     "description": "no outputs, change expected",
-    "change": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)",
+    "remainder": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)",
     "feeRate": 10,
     "expected": {
       "inputs": [
@@ -597,7 +597,7 @@
   },
   {
     "description": "not enough funds, empty result",
-    "change": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)",
+    "remainder": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)",
     "feeRate": 10,
     "expected": {
       "fee": 1920
@@ -617,7 +617,7 @@
   },
   {
     "description": "not enough funds (w/ fee), empty result",
-    "change": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)",
+    "remainder": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)",
     "feeRate": 10,
     "expected": {
       "fee": 1920
@@ -637,7 +637,7 @@
   },
   {
     "description": "not enough funds (no inputs), empty result",
-    "change": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)",
+    "remainder": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)",
     "feeRate": 10,
     "expected": {
       "fee": 100
@@ -647,7 +647,7 @@
   },
   {
     "description": "not enough funds (no inputs), empty result (>1KiB)",
-    "change": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)",
+    "remainder": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)",
     "feeRate": 10,
     "expected": {
       "fee": 9960

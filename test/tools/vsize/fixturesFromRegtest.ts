@@ -1,0 +1,159 @@
+// Copyright (c) 2023 Jose-Luis Landabaso - https://bitcoinerlab.com
+// Distributed under the MIT software license
+
+import fs from 'fs';
+import path from 'path';
+import { Psbt, Network } from 'bitcoinjs-lib';
+import { RegtestUtils } from 'regtest-client';
+import {
+  DescriptorsFactory,
+  OutputInstance,
+  signers
+} from '@bitcoinerlab/descriptors';
+import type { BIP32Interface } from 'bip32';
+import * as secp256k1 from '@bitcoinerlab/secp256k1';
+const { Output } = DescriptorsFactory(secp256k1);
+
+const regtestUtils = new RegtestUtils();
+import type { InputOrigin } from '../../../dist';
+
+const INPUT_VALUE = 10000;
+const FEE_PER_OUTPUT = 10;
+
+import { network, masterNode, transactions } from './combine';
+
+const fixturesPath = path.join(__dirname, '../../fixtures/vsize.json');
+import type { FixturesMap } from '../../vsize.test';
+
+function createPsbt({
+  inputs,
+  inputOrigins,
+  outputs,
+  masterNode,
+  network
+}: {
+  inputs: Array<OutputInstance>;
+  inputOrigins: Array<InputOrigin>;
+  outputs: Array<OutputInstance>;
+  masterNode: BIP32Interface;
+  network: Network;
+}) {
+  const psbt = new Psbt({ network });
+
+  const finalizers = [];
+  for (const [i, input] of inputs.entries()) {
+    const inputOrigin = inputOrigins[i];
+    if (!inputOrigin) throw new Error('Invalid inputOrigins');
+    finalizers.push(input.updatePsbtAsInput({ psbt, ...inputOrigin }));
+  }
+  outputs.forEach(output => {
+    output.updatePsbtAsOutput({
+      psbt,
+      value: Math.round(
+        (inputs.length * INPUT_VALUE) / outputs.length - FEE_PER_OUTPUT
+      )
+    });
+  });
+  signers.signBIP32({ psbt, masterNode });
+  const signaturesPerInput = psbt.data.inputs.map(input => {
+    const partialSig = input.partialSig;
+    if (!partialSig) throw new Error('No signatures');
+    return partialSig;
+  });
+  finalizers.forEach(finalizer => finalizer({ psbt }));
+
+  return { signaturesPerInput, psbt };
+}
+
+const connectToRegtest = async () => {
+  const ATTEMPTS = 10;
+  for (let i = 0; i < ATTEMPTS; i++) {
+    try {
+      await regtestUtils.height();
+      break;
+    } catch (err: unknown) {
+      const message = (err as Error).message;
+      console.warn(
+        `Attempt #${i + 1} to connect to the regtest node: ${message}`
+      );
+      // Wait for 1 sec except after the final attempt
+      if (i < ATTEMPTS - 1)
+        await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+  }
+  await regtestUtils.mine(100);
+};
+
+const generateFixtures = async () => {
+  const fixtures: FixturesMap = {};
+  for (const [index, transaction] of Object.entries(transactions)) {
+    console.log(
+      `Generating ${index}/${transactions.length} - ${transaction.info}`
+    );
+    const inputs = transaction.inputs.map(
+      input => new Output({ ...input, allowMiniscriptInP2SH: true, network })
+    );
+    const outputs = transaction.outputs.map(
+      output => new Output({ ...output, allowMiniscriptInP2SH: true, network })
+    );
+
+    const inputOrigins: Array<InputOrigin> = [];
+    for (const input of inputs) {
+      const unspent = await regtestUtils.faucet(
+        input.getAddress(),
+        INPUT_VALUE
+      );
+      const { txHex } = await regtestUtils.fetch(unspent.txId);
+      inputOrigins.push({ txHex, vout: unspent.vout });
+      //expect(unspent.value).toEqual(INPUT_VALUE);
+    }
+
+    const { psbt, signaturesPerInput } = createPsbt({
+      inputs,
+      outputs,
+      inputOrigins,
+      masterNode,
+      network
+    });
+    const tx = psbt.extractTransaction();
+    const vsize = tx.virtualSize();
+
+    const serialize = (
+      outputs: Array<{ descriptor: string; signersPubKeys?: Array<Buffer> }>
+    ) =>
+      outputs.map(output => {
+        const parsed: { descriptor: string; signersPubKeys?: Array<string> } = {
+          descriptor: output.descriptor
+        };
+        if (output.signersPubKeys) {
+          parsed.signersPubKeys = output.signersPubKeys.map(signerPubKey =>
+            signerPubKey.toString('hex')
+          );
+        }
+        return parsed;
+      });
+    // Serializing signaturesPerInput
+    const serializedSignatures = signaturesPerInput.map(signatures =>
+      signatures.map(sig => ({
+        pubkey: sig.pubkey.toString('hex'),
+        signature: sig.signature.toString('hex')
+      }))
+    );
+
+    fixtures[transaction.info] = {
+      fixture: transaction.info,
+      inputs: serialize(transaction.inputs),
+      outputs: serialize(transaction.outputs),
+      psbt: psbt.toBase64(),
+      signaturesPerInput: serializedSignatures,
+      vsize
+    };
+  }
+
+  fs.writeFileSync(fixturesPath, JSON.stringify(fixtures, null, 2), 'utf8');
+};
+
+(async () => {
+  await connectToRegtest();
+  await generateFixtures();
+})();

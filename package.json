@@ -18,12 +18,13 @@
     "webdocs": "typedoc --options ./node_modules/@bitcoinerlab/configs/webtypedoc.json",
     "docs": "typedoc --options ./node_modules/@bitcoinerlab/configs/typedoc.json",
     "build:src": "tsc --project ./node_modules/@bitcoinerlab/configs/tsconfig.src.json",
-    "fixtures": "npx ts-node --project ./node_modules/@bitcoinerlab/configs/tsconfig.test.json test/fixturesFromBjs.ts",
+    "fixturesCoinselect": "npx ts-node --project ./node_modules/@bitcoinerlab/configs/tsconfig.test.json test/tools/coinselect/fixturesFromBjs.ts",
+    "fixturesVsize": "npm run tester && npx ts-node --transpile-only --project ./node_modules/@bitcoinerlab/configs/tsconfig.test.json test/tools/vsize/fixturesFromRegtest.ts",
     "build:test": "tsc --project ./node_modules/@bitcoinerlab/configs/tsconfig.test.json --resolveJsonModule",
     "build": "npm run build:src && npm run build:test",
     "lint": "eslint --ignore-path .gitignore --ext .ts src/ test/",
     "tester": "./node_modules/@bitcoinerlab/configs/scripts/tester.sh",
-    "test": "npm run lint && npm run build && npm run tester && NODE_OPTIONS=\"--experimental-fetch\" jest",
+    "test": "npm run lint && npm run build && jest",
     "prepublishOnly": "npm test"
   },
   "repository": {

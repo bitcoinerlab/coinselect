@@ -1,20 +1,16 @@
-//TODO: first thing in coinselect and size is to validate the value in all inputs and outputs and throw if number !== integer finite > 0 < 1 Million bitcoin.
-//TODO: allow (in input and output) addr() -> addr(sh) is assumed to be p2shp2wpkh, say so in documentation. If sh is wanted to be used for generic scripts then use sh(miniscript)
-//TODO: add tests for the addr() size for inputs and outputs
-//TODO: allow float feeRate
-//
-//TODO: Test coinselect
-//TODO: Add an algo to send FULL FUNDS to 1 target
-//
+//TODO: add tests for the addr() size for inputs and outputs: addresses types: pkh, wpkh, sh(wpkh)
+//  -> addr(sh) is assumed to be p2shp2wpkh, say so in documentation. If sh is wanted to be used for generic scripts then use sh(miniscript)
+//TODO: test send max funds
+//TODO: Add a way to receive change. Pass one vout with empty value. Then check is one at most. Or pass a  "remainder"? But then you must pass the target value.
 //TODO: note that fee may end up being a float since it's depends on
 //inputWeight, which, depends on my approx: https://github.com/bitcoinjs/coinselect/blob/master/accumulative.js
 //TODO: inputs and outputs are undefined if no solution
 import type { OutputInstance } from '@bitcoinerlab/descriptors';
-import type { OutputWithValue } from './index';
+import { OutputWithValue, DUST_RELAY_FEE_RATE } from './index';
 import { validateFeeRate, validateOutputWithValues } from './validation';
 import { addUntilReach } from './algos/addUntilReach';
 import { avoidChange } from './algos/avoidChange';
-import { inputWeight } from './size';
+import { inputWeight } from './vsize';
 
 // order by descending value, minus the inputs approximate fee
 function utxoTransferredValue(
@@ -30,14 +26,16 @@ function utxoTransferredValue(
 
 export function coinselect({
   utxos,
-  targets,
-  change,
-  feeRate
+  targets = [],
+  remainder,
+  feeRate,
+  dustRelayFeeRate = DUST_RELAY_FEE_RATE
 }: {
   utxos: Array<OutputWithValue>;
   targets: Array<OutputWithValue>;
-  change: OutputInstance;
+  remainder?: OutputInstance;
   feeRate: number;
+  dustRelayFeeRate?: number;
 }):
   | undefined
   | {
@@ -47,6 +45,8 @@ export function coinselect({
   validateOutputWithValues(utxos);
   validateOutputWithValues(targets);
   validateFeeRate(feeRate);
+  validateFeeRate(dustRelayFeeRate);
+  if (utxos.length === 0 || (targets.length === 0 && !remainder)) return;
 
   //We will assume that the tx is segwit if there is at least one segwit
   //utxo for computing the utxo ordering. This is an approximation.
@@ -62,11 +62,16 @@ export function coinselect({
       utxoTransferredValue(a, feeRate, isPossiblySegwitTx)
   );
 
-  console.log({ sortedUtxos });
-
   const coinselected =
-    avoidChange({ utxos: sortedUtxos, targets, feeRate }) ||
-    addUntilReach({ utxos: sortedUtxos, targets, change, feeRate });
+    avoidChange({ utxos: sortedUtxos, targets, feeRate, dustRelayFeeRate }) ||
+    (remainder &&
+      addUntilReach({
+        utxos: sortedUtxos,
+        targets,
+        remainder,
+        feeRate,
+        dustRelayFeeRate
+      }));
 
   if (!coinselected) return;
 

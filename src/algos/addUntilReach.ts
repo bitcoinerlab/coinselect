@@ -1,6 +1,7 @@
 import type { OutputInstance } from '@bitcoinerlab/descriptors';
-import type { OutputWithValue } from '../index';
-import { size } from '../size';
+import { DUST_RELAY_FEE_RATE, OutputWithValue } from '../index';
+import { validateFeeRate, validateOutputWithValues } from '../validation';
+import { vsize } from '../vsize';
 
 /**
  * Continuously incorporate inputs until the target value is met or exceeded,
@@ -11,19 +12,27 @@ import { size } from '../size';
 export function addUntilReach({
   utxos,
   targets,
-  change,
-  feeRate
+  remainder,
+  feeRate,
+  dustRelayFeeRate = DUST_RELAY_FEE_RATE
 }: {
   utxos: Array<OutputWithValue>;
   targets: Array<OutputWithValue>;
-  change: OutputInstance;
+  remainder: OutputInstance;
   feeRate: number;
+  dustRelayFeeRate?: number;
 }) {
+  validateOutputWithValues(utxos);
+  validateOutputWithValues(targets);
+  validateFeeRate(feeRate);
+  validateFeeRate(dustRelayFeeRate);
+  if (utxos.length === 0 || (targets.length === 0 && !remainder)) return;
+
   const targetsValue = targets.reduce((a, target) => a + target.value, 0);
   const utxosSoFar: Array<OutputWithValue> = [];
 
   for (const candidate of utxos) {
-    const txSizeSoFar = size(
+    const txSizeSoFar = vsize(
       utxosSoFar.map(utxo => utxo.output),
       targets.map(target => target.output)
     );
@@ -32,7 +41,7 @@ export function addUntilReach({
 
     const txFeeSoFar = Math.ceil(txSizeSoFar * feeRate);
 
-    const txSizeWithCandidate = size(
+    const txSizeWithCandidate = vsize(
       [candidate.output, ...utxosSoFar.map(utxo => utxo.output)],
       targets.map(target => target.output)
     );
@@ -43,44 +52,38 @@ export function addUntilReach({
     if (candidateFeeContribution < 0)
       throw new Error(`candidateFeeContribution < 0`);
 
-    // If you'd pay more than 1/3 in fees
-    // to spend something, then we consider it dust.
-    // https://github.com/bitcoin/bitcoin/blob/f90603ac6d24f5263649675d51233f1fce8b2ecd/src/policy/policy.cpp#L20
-    //if (candidate.value >= candidateFeeContribution) {
-    if (candidate.value > 3 * candidateFeeContribution) {
+    if (candidate.value >= candidateFeeContribution) {
       if (
         utxosSoFarValue + candidate.value >=
         targetsValue + txFeeWithCandidate
       ) {
-        // Evaluate if adding change is beneficial (is changeValue > 0?).
+        // Evaluate if adding remainder is beneficial (is remainderValue > 0?).
         // Note: Change is added even if it's a small amount ('dust'),
         // as receiving any amount of change back is considered worthwhile.
-        const txSizeWithCandidateAndChange = size(
+        const txSizeWithCandidateAndChange = vsize(
           [candidate.output, ...utxosSoFar.map(utxo => utxo.output)],
-          [change, ...targets.map(target => target.output)]
+          [remainder, ...targets.map(target => target.output)]
         );
         const txFeeWithCandidateAndChange = Math.ceil(
           txSizeWithCandidateAndChange * feeRate
         );
-        const changeValue =
+        const remainderValue =
           utxosSoFarValue +
           candidate.value -
           (targetsValue + txFeeWithCandidateAndChange);
 
-        //const threshold = Math.ceil(
-        //  (candidate.output.isSegwit() ? 67.75 : 148) * feeRate
-        //);
+        // https://github.com/bitcoin/bitcoin/blob/d752349029ec7a76f1fd440db2ec2e458d0f3c99/src/policy/policy.cpp#L26
+
+        const threshold =
+          dustRelayFeeRate *
+          (candidate.output.isSegwit()
+            ? /*wpkh out:*/ 31 + /*wpkh in:*/ (32 + 4 + 1 + 107 / 4 + 4)
+            : /*pkh out:*/ 34 + /*pkh in:*/ 32 + 4 + 1 + 107 + 4);
         return {
           utxos: [candidate, ...utxosSoFar],
           targets:
-            // changeValue > threshold
-            // Add change if changeValue is larger than threshold
-
-            // changeValue > 0
-            // Add change if changeValue is positive; ignore if it's minimal ('dust')
-
-            changeValue > 0
-              ? [...targets, { output: change, value: changeValue }]
+            remainderValue >= threshold
+              ? [...targets, { output: remainder, value: remainderValue }]
               : targets
         };
       } else {

@@ -6,13 +6,15 @@ type OutputWithValue = {
   value: number;
 };
 
+export const DUST_RELAY_FEE_RATE = 3;
+
 import type { OutputInstance } from '@bitcoinerlab/descriptors';
-import { size } from './size';
+import { vsize } from './vsize';
 import { coinselect } from './coinselect';
 import { addUntilReach } from './algos/addUntilReach';
 import { avoidChange } from './algos/avoidChange';
 export {
-  size,
+  vsize,
   coinselect,
   addUntilReach,
   avoidChange,

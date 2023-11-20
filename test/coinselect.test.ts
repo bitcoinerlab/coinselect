@@ -4,17 +4,16 @@ import { DescriptorsFactory } from '@bitcoinerlab/descriptors';
 const { Output } = DescriptorsFactory(secp256k1);
 
 import fixturesCoinselect from './fixtures/coinselect.json';
-import fixturesAccumulative from './fixtures/accumulative.json';
+import fixturesAccumulative from './fixtures/addUntilReach.json';
 
 for (const fixturesWithDescription of [
   { fixtures: fixturesCoinselect, setDescription: 'coinselect' },
-  { fixtures: fixturesAccumulative, setDescription: 'accumulative' }
+  { fixtures: fixturesAccumulative, setDescription: 'addUntilReach' }
 ]) {
   const { fixtures, setDescription } = fixturesWithDescription;
   describe(setDescription, () => {
     for (const fixture of fixtures) {
       test(fixture.description, () => {
-        console.log(fixture.description);
         const utxos = fixture.utxos.map(utxo => ({
           value: utxo.value,
           output: new Output({ descriptor: utxo.descriptor })
@@ -28,31 +27,39 @@ for (const fixturesWithDescription of [
             ? coinselect({
                 utxos: utxos as Array<OutputWithValue>,
                 targets: targets as Array<OutputWithValue>,
-                change: new Output({ descriptor: fixture.change }),
-                feeRate: fixture.feeRate
+                remainder: new Output({ descriptor: fixture.remainder }),
+                feeRate: fixture.feeRate,
+                // This is probably a bad idea, but we're m using tests fixtures
+                // from bitcoinjs/coinselect which operate like this:
+                // https://github.com/bitcoinjs/coinselect/issues/86
+                dustRelayFeeRate: fixture.feeRate
               })
             : addUntilReach({
                 utxos: utxos as Array<OutputWithValue>,
                 targets: targets as Array<OutputWithValue>,
-                change: new Output({ descriptor: fixture.change }),
-                feeRate: fixture.feeRate
+                remainder: new Output({ descriptor: fixture.remainder }),
+                feeRate: fixture.feeRate,
+                // This is probably a bad idea, but we're m using tests fixtures
+                // from bitcoinjs/coinselect which operate like this:
+                // https://github.com/bitcoinjs/coinselect/issues/86
+                dustRelayFeeRate: fixture.feeRate
               });
         expect(coinselected ? coinselected.targets.length : 0).toBe(
           fixture.expected?.outputs?.length || 0
         );
-        let changeValue: number | undefined;
+        let remainderValue: number | undefined;
         if (
           fixture.expected.outputs &&
           fixture.expected.outputs.length > fixture.targets.length
         ) {
           const lastExpectedOutput =
             fixture.expected.outputs[fixture.expected.outputs.length - 1]!;
-          changeValue = lastExpectedOutput.value;
+          remainderValue = lastExpectedOutput.value;
         }
-        if (changeValue !== undefined && coinselected) {
+        if (remainderValue !== undefined && coinselected) {
           expect(
             coinselected.targets[coinselected.targets.length - 1]!.value
-          ).toBe(changeValue);
+          ).toBe(remainderValue);
         }
         // Check if the selected UTXOs match the expected indices
         if (coinselected && fixture.expected.inputs) {
