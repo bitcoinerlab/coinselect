@@ -50,7 +50,7 @@ export function maxFunds({
   const validFee = Math.ceil(
     feeRate *
       vsize(
-        utxos.map(utxo => utxo.output),
+        validUtxos.map(utxo => utxo.output),
         [remainder]
       )
   );
