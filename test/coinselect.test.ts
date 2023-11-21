@@ -54,6 +54,7 @@ for (const fixturesWithDescription of [
         //    {
         //      setDescription,
         //      desc: fixture.description,
+        //      utxos,
         //      targets,
         //      coinselected,
         //      expected: fixture.expected

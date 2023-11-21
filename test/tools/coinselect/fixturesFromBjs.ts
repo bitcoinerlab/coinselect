@@ -87,6 +87,8 @@ const processFixtures = (
                   return;
                 }
                 // In the input if script is HIGH then we compensate it by SUBSTRACTING output value
+                //TODO also do not add the script to the expected utxos then
+                //TODO: also compensate the fee
                 value -= (input.script.length - 107) * feeRate;
                 if (value < 1) {
                   console.log(
@@ -155,6 +157,8 @@ const processFixtures = (
                   return;
                 }
                 // In the output if script is HIGH then we compensate it by ADDING output value
+                //TODO also do not add the script to the expected targets then
+                //TODO: also compensate the fee
                 value += (output.script.length - 25) * feeRate;
               }
               return {

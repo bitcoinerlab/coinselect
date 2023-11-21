@@ -1,6 +1,10 @@
 import type { OutputInstance } from '@bitcoinerlab/descriptors';
 import { DUST_RELAY_FEE_RATE, OutputWithValue } from '../index';
-import { validateFeeRate, validateOutputWithValues } from '../validation';
+import {
+  validateFeeRate,
+  validateOutputWithValues,
+  validatedFeeAndVsize
+} from '../validation';
 import { vsize } from '../vsize';
 import { isDust } from '../dust';
 
@@ -29,12 +33,7 @@ export function avoidChange({
   remainder: OutputInstance;
   feeRate: number;
   dustRelayFeeRate?: number;
-}):
-  | undefined
-  | {
-      utxos: Array<OutputWithValue>;
-      targets: Array<OutputWithValue>;
-    } {
+}) {
   validateOutputWithValues(utxos);
   validateOutputWithValues(targets);
   validateFeeRate(feeRate);
@@ -86,7 +85,8 @@ export function avoidChange({
           const utxosResult = [candidate, ...utxosSoFar];
           return {
             utxos: utxosResult.length === utxos.length ? utxos : utxosResult,
-            targets
+            targets,
+            ...validatedFeeAndVsize(utxosResult, targets, feeRate)
           };
         } else utxosSoFar.push(candidate);
       }

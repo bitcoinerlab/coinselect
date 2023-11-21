@@ -1,6 +1,10 @@
 import type { OutputInstance } from '@bitcoinerlab/descriptors';
 import { DUST_RELAY_FEE_RATE, OutputWithValue } from '../index';
-import { validateFeeRate, validateOutputWithValues } from '../validation';
+import {
+  validateFeeRate,
+  validateOutputWithValues,
+  validatedFeeAndVsize
+} from '../validation';
 import { vsize } from '../vsize';
 import { isDust } from '../dust';
 
@@ -74,11 +78,17 @@ export function addUntilReach({
         //return the same reference if nothing changed to interact nicely with
         //reactive components
         const utxosResult = [candidate, ...utxosSoFar];
+        const targetsResult = isDust(
+          remainder,
+          remainderValue,
+          dustRelayFeeRate
+        )
+          ? targets
+          : [...targets, { output: remainder, value: remainderValue }];
         return {
           utxos: utxosResult.length === utxos.length ? utxos : utxosResult,
-          targets: isDust(remainder, remainderValue, dustRelayFeeRate)
-            ? targets
-            : [...targets, { output: remainder, value: remainderValue }]
+          targets: targetsResult,
+          ...validatedFeeAndVsize(utxosResult, targetsResult, feeRate)
         };
       } else {
         utxosSoFar.push(candidate);

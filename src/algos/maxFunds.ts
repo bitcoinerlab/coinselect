@@ -1,6 +1,10 @@
 import type { OutputInstance } from '@bitcoinerlab/descriptors';
 import { DUST_RELAY_FEE_RATE, OutputWithValue } from '../index';
-import { validateFeeRate, validateOutputWithValues } from '../validation';
+import {
+  validateFeeRate,
+  validateOutputWithValues,
+  validatedFeeAndVsize
+} from '../validation';
 import { vsize } from '../vsize';
 import { isDust } from '../dust';
 
@@ -17,12 +21,7 @@ export function maxFunds({
   remainder: OutputInstance;
   feeRate: number;
   dustRelayFeeRate?: number;
-}):
-  | undefined
-  | {
-      utxos: Array<OutputWithValue>;
-      targets: Array<OutputWithValue>;
-    } {
+}) {
   validateOutputWithValues(utxos);
   validateFeeRate(feeRate);
   validateFeeRate(dustRelayFeeRate);
@@ -56,12 +55,14 @@ export function maxFunds({
   );
   const validUtxosValue = validUtxos.reduce((a, utxo) => a + utxo.value, 0);
   const remainderValue = validUtxosValue - validFee;
-  if (!isDust(remainder, remainderValue, dustRelayFeeRate))
+  if (!isDust(remainder, remainderValue, dustRelayFeeRate)) {
     //return the same reference if nothing changed to interact nicely with
     //reactive components
+    const targets = [{ output: remainder, value: remainderValue }];
     return {
       utxos: utxos.length === validUtxos.length ? utxos : validUtxos,
-      targets: [{ output: remainder, value: remainderValue }]
+      targets,
+      ...validatedFeeAndVsize(validUtxos, targets, feeRate)
     };
-  else return;
+  } else return;
 }

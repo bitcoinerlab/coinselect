@@ -1,7 +1,9 @@
+//TODO: test that the returned feeRate : fee / vsize is larger than the input one
+//Throw if this is not the case. Also throw if it is significantly larger or above 10000
+//TODO: test throw because isDust one target, test throw if no inputs or no outputs
 //TODO: Document: isDust is always applied. outputs will be checked agains it and
 //it will prevent creating them if they are dusty
 //TODO: Document: Only consider inputs with more value than the fee they require
-//TODO: create a maxFunds algo
 //TODO: better throw if ut
 //TODO: check for dusty outputs. Throw if dusty or return undefined.
 //  -> Problem, I will not know why i returned undefined?
@@ -59,12 +61,7 @@ export function coinselect({
   remainder: OutputInstance;
   feeRate: number;
   dustRelayFeeRate?: number;
-}):
-  | undefined
-  | {
-      utxos: Array<OutputWithValue>;
-      targets: Array<OutputWithValue>;
-    } {
+}) {
   validateOutputWithValues(utxos);
   if (targets) validateOutputWithValues(targets);
   validateFeeRate(feeRate);
@@ -113,6 +110,6 @@ export function coinselect({
         ? targets
         : coinselected.targets;
 
-    return { utxos, targets };
+    return { utxos, targets, fee: coinselected.fee, vsize: coinselected.vsize };
   } else return;
 }
