@@ -71,8 +71,11 @@ export function addUntilReach({
           candidate.value -
           (targetsValue + txFeeWithCandidateAndChange);
 
+        //return the same reference if nothing changed to interact nicely with
+        //reactive components
+        const utxosResult = [candidate, ...utxosSoFar];
         return {
-          utxos: [candidate, ...utxosSoFar],
+          utxos: utxosResult.length === utxos.length ? utxos : utxosResult,
           targets: isDust(remainder, remainderValue, dustRelayFeeRate)
             ? targets
             : [...targets, { output: remainder, value: remainderValue }]

@@ -80,9 +80,15 @@ export function avoidChange({
         if (
           utxosSoFarValue + candidate.value >=
           targetsValue + txFeeWithCandidate
-        )
-          return { utxos: [candidate, ...utxosSoFar], targets };
-        else utxosSoFar.push(candidate);
+        ) {
+          //return the same reference if nothing changed to interact nicely with
+          //reactive components
+          const utxosResult = [candidate, ...utxosSoFar];
+          return {
+            utxos: utxosResult.length === utxos.length ? utxos : utxosResult,
+            targets
+          };
+        } else utxosSoFar.push(candidate);
       }
     }
   }

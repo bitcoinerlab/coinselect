@@ -57,8 +57,10 @@ export function maxFunds({
   const validUtxosValue = validUtxos.reduce((a, utxo) => a + utxo.value, 0);
   const remainderValue = validUtxosValue - validFee;
   if (!isDust(remainder, remainderValue, dustRelayFeeRate))
+    //return the same reference if nothing changed to interact nicely with
+    //reactive components
     return {
-      utxos: validUtxos,
+      utxos: utxos.length === validUtxos.length ? utxos : validUtxos,
       targets: [{ output: remainder, value: remainderValue }]
     };
   else return;
