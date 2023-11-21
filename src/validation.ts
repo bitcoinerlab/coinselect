@@ -2,6 +2,7 @@ import type { OutputWithValue } from './index';
 export function validateOutputWithValues(
   outputAndValues: Array<OutputWithValue>
 ) {
+  if (outputAndValues.length === 0) throw new Error('Empty group');
   for (const outputAndValue of outputAndValues) {
     const value = outputAndValue.value;
     if (!Number.isInteger(value) || value <= 0 || value > 1e14 /*1 M Btc*/) {

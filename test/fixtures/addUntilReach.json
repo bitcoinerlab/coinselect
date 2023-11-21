@@ -613,52 +613,57 @@
     ]
   },
   {
-    "description": "no outputs, no change",
+    "description": "inputs used in order of DESCENDING",
     "remainder": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)",
     "feeRate": 10,
     "expected": {
-      "inputs": [
-        {
-          "i": 0,
-          "value": 1900
-        }
-      ],
-      "outputs": [],
-      "fee": 1900
-    },
-    "utxos": [
-      {
-        "value": 1900,
-        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
-      }
-    ],
-    "targets": []
-  },
-  {
-    "description": "no outputs, change expected",
-    "remainder": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)",
-    "feeRate": 10,
-    "expected": {
+      "fee": 7150,
       "inputs": [
         {
           "i": 0,
           "value": 20000
+        },
+        {
+          "i": 1,
+          "script": {
+            "length": 300
+          },
+          "value": 10000
+        },
+        {
+          "i": 2,
+          "value": 10000
         }
       ],
       "outputs": [
         {
-          "value": 18080
+          "value": 25000
+        },
+        {
+          "value": 7850
         }
-      ],
-      "fee": 1920
+      ]
     },
     "utxos": [
       {
         "value": 20000,
         "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      },
+      {
+        "value": 8070,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      },
+      {
+        "value": 10000,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
       }
     ],
-    "targets": []
+    "targets": [
+      {
+        "value": 25000,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      }
+    ]
   },
   {
     "description": "not enough funds, empty result",
@@ -696,143 +701,6 @@
     "targets": [
       {
         "value": 40000,
-        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
-      }
-    ]
-  },
-  {
-    "description": "not enough funds (no inputs), empty result",
-    "remainder": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)",
-    "feeRate": 10,
-    "expected": {
-      "fee": 100
-    },
-    "utxos": [],
-    "targets": []
-  },
-  {
-    "description": "not enough funds (no inputs), empty result (>1KiB)",
-    "remainder": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)",
-    "feeRate": 10,
-    "expected": {
-      "fee": 9960
-    },
-    "utxos": [],
-    "targets": [
-      {
-        "value": 1,
-        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
-      },
-      {
-        "value": 1,
-        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
-      },
-      {
-        "value": 1,
-        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
-      },
-      {
-        "value": 1,
-        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
-      },
-      {
-        "value": 1,
-        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
-      },
-      {
-        "value": 1,
-        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
-      },
-      {
-        "value": 1,
-        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
-      },
-      {
-        "value": 1,
-        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
-      },
-      {
-        "value": 1,
-        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
-      },
-      {
-        "value": 1,
-        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
-      },
-      {
-        "value": 1,
-        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
-      },
-      {
-        "value": 1,
-        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
-      },
-      {
-        "value": 1,
-        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
-      },
-      {
-        "value": 1,
-        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
-      },
-      {
-        "value": 1,
-        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
-      },
-      {
-        "value": 1,
-        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
-      },
-      {
-        "value": 1,
-        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
-      },
-      {
-        "value": 1,
-        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
-      },
-      {
-        "value": 1,
-        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
-      },
-      {
-        "value": 1,
-        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
-      },
-      {
-        "value": 1,
-        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
-      },
-      {
-        "value": 1,
-        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
-      },
-      {
-        "value": 1,
-        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
-      },
-      {
-        "value": 1,
-        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
-      },
-      {
-        "value": 1,
-        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
-      },
-      {
-        "value": 1,
-        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
-      },
-      {
-        "value": 1,
-        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
-      },
-      {
-        "value": 1,
-        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
-      },
-      {
-        "value": 1,
         "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
       }
     ]

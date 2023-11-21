@@ -1,21 +1,32 @@
+import type { OutputInstance } from '@bitcoinerlab/descriptors';
 import { DUST_RELAY_FEE_RATE, OutputWithValue } from '../index';
 import { validateFeeRate, validateOutputWithValues } from '../validation';
 import { vsize } from '../vsize';
+import { isDust } from '../dust';
 
 /**
  * Include inputs only when they do not exceed the target value.
  * In other words, achieve an exact match.
  *
  * utxos passed must be ordered in descending (value - fee contribution)
+ *
+ * Note that remainder is never used to create a target; however it is used
+ * to compute dust: Would this algo add change if it were possible?
  */
 export function avoidChange({
   utxos,
   targets,
+  remainder,
   feeRate,
   dustRelayFeeRate = DUST_RELAY_FEE_RATE
 }: {
   utxos: Array<OutputWithValue>;
   targets: Array<OutputWithValue>;
+  /**
+   * This is the hypotetical change that this algo will check it would
+   * never be needed
+   */
+  remainder: OutputInstance;
   feeRate: number;
   dustRelayFeeRate?: number;
 }):
@@ -28,12 +39,11 @@ export function avoidChange({
   validateOutputWithValues(targets);
   validateFeeRate(feeRate);
   validateFeeRate(dustRelayFeeRate);
+
   if (utxos.length === 0 || targets.length === 0) return;
 
   const targetsValue = targets.reduce((a, target) => a + target.value, 0);
   const utxosSoFar: Array<OutputWithValue> = [];
-
-  if (utxos.length === 0 || targets.length === 0) return;
 
   for (const candidate of utxos) {
     const utxosSoFarValue = utxosSoFar.reduce((a, utxo) => a + utxo.value, 0);
@@ -44,17 +54,21 @@ export function avoidChange({
     );
     const txFeeWithCandidate = Math.ceil(txSizeWithCandidate * feeRate);
 
-    // https://github.com/bitcoin/bitcoin/blob/d752349029ec7a76f1fd440db2ec2e458d0f3c99/src/policy/policy.cpp#L26
+    const txSizeWithCandidateAndChange = vsize(
+      [candidate.output, ...utxosSoFar.map(utxo => utxo.output)],
+      [remainder, ...targets.map(target => target.output)]
+    );
+    const txFeeWithCandidateAndChange = Math.ceil(
+      txSizeWithCandidateAndChange * feeRate
+    );
 
-    const threshold =
-      dustRelayFeeRate *
-      (candidate.output.isSegwit()
-        ? /*wpkh out:*/ 31 + /*wpkh in:*/ (32 + 4 + 1 + 107 / 4 + 4)
-        : /*pkh out:*/ 34 + /*pkh in:*/ 32 + 4 + 1 + 107 + 4);
-    if (
-      utxosSoFarValue + candidate.value <=
-      targetsValue + txFeeWithCandidate + threshold
-    ) {
+    const remainderValue =
+      utxosSoFarValue +
+      candidate.value -
+      (targetsValue + txFeeWithCandidateAndChange);
+
+    //Check that adding the candidate utxo would NOT imply that change was needed:
+    if (isDust(remainder, remainderValue, dustRelayFeeRate)) {
       if (
         utxosSoFarValue + candidate.value >=
         targetsValue + txFeeWithCandidate

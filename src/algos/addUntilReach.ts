@@ -2,6 +2,7 @@ import type { OutputInstance } from '@bitcoinerlab/descriptors';
 import { DUST_RELAY_FEE_RATE, OutputWithValue } from '../index';
 import { validateFeeRate, validateOutputWithValues } from '../validation';
 import { vsize } from '../vsize';
+import { isDust } from '../dust';
 
 /**
  * Continuously incorporate inputs until the target value is met or exceeded,
@@ -26,7 +27,8 @@ export function addUntilReach({
   validateOutputWithValues(targets);
   validateFeeRate(feeRate);
   validateFeeRate(dustRelayFeeRate);
-  if (utxos.length === 0 || (targets.length === 0 && !remainder)) return;
+
+  if (utxos.length === 0 || targets.length === 0) return;
 
   const targetsValue = targets.reduce((a, target) => a + target.value, 0);
   const utxosSoFar: Array<OutputWithValue> = [];
@@ -72,19 +74,11 @@ export function addUntilReach({
           candidate.value -
           (targetsValue + txFeeWithCandidateAndChange);
 
-        // https://github.com/bitcoin/bitcoin/blob/d752349029ec7a76f1fd440db2ec2e458d0f3c99/src/policy/policy.cpp#L26
-
-        const threshold =
-          dustRelayFeeRate *
-          (candidate.output.isSegwit()
-            ? /*wpkh out:*/ 31 + /*wpkh in:*/ (32 + 4 + 1 + 107 / 4 + 4)
-            : /*pkh out:*/ 34 + /*pkh in:*/ 32 + 4 + 1 + 107 + 4);
         return {
           utxos: [candidate, ...utxosSoFar],
-          targets:
-            remainderValue >= threshold
-              ? [...targets, { output: remainder, value: remainderValue }]
-              : targets
+          targets: isDust(remainder, remainderValue, dustRelayFeeRate)
+            ? targets
+            : [...targets, { output: remainder, value: remainderValue }]
         };
       } else {
         utxosSoFar.push(candidate);

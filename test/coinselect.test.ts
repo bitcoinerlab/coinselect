@@ -5,10 +5,12 @@ const { Output } = DescriptorsFactory(secp256k1);
 
 import fixturesCoinselect from './fixtures/coinselect.json';
 import fixturesAccumulative from './fixtures/addUntilReach.json';
+import fixturesMaxFunds from './fixtures/maxFunds.json';
 
 for (const fixturesWithDescription of [
   { fixtures: fixturesCoinselect, setDescription: 'coinselect' },
-  { fixtures: fixturesAccumulative, setDescription: 'addUntilReach' }
+  { fixtures: fixturesAccumulative, setDescription: 'addUntilReach' },
+  { fixtures: fixturesMaxFunds, setDescription: 'maxFunds' }
 ]) {
   const { fixtures, setDescription } = fixturesWithDescription;
   describe(setDescription, () => {
@@ -44,22 +46,33 @@ for (const fixturesWithDescription of [
                 // https://github.com/bitcoinjs/coinselect/issues/86
                 dustRelayFeeRate: fixture.feeRate
               });
+        //console.log(
+        //  JSON.stringify(
+        //    {
+        //      desc: fixture.description,
+        //      coinselected,
+        //      expected: fixture.expected
+        //    },
+        //    null,
+        //    2
+        //  )
+        //);
         expect(coinselected ? coinselected.targets.length : 0).toBe(
           fixture.expected?.outputs?.length || 0
         );
-        let remainderValue: number | undefined;
+        let expectedRemainderValue: number | undefined;
         if (
           fixture.expected.outputs &&
           fixture.expected.outputs.length > fixture.targets.length
         ) {
           const lastExpectedOutput =
             fixture.expected.outputs[fixture.expected.outputs.length - 1]!;
-          remainderValue = lastExpectedOutput.value;
+          expectedRemainderValue = lastExpectedOutput.value;
         }
-        if (remainderValue !== undefined && coinselected) {
+        if (expectedRemainderValue !== undefined && coinselected) {
           expect(
             coinselected.targets[coinselected.targets.length - 1]!.value
-          ).toBe(remainderValue);
+          ).toBe(expectedRemainderValue);
         }
         // Check if the selected UTXOs match the expected indices
         if (coinselected && fixture.expected.inputs) {

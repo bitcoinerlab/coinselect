@@ -44,6 +44,7 @@ const processFixtures = (
   outputPath: string,
   descriptor: string
 ) => {
+  console.log(`Processing ${inputPath}`);
   const fixtures = require(inputPath);
 
   const processedFixtures = fixtures
@@ -60,13 +61,6 @@ const processFixtures = (
       } else if (fixture.description.includes('NaN')) {
         console.log(`Discarding (NaN TESTS - ${fixture.description}`);
         return;
-      } else if (
-        fixture.description.includes('inputs used in order of DESCENDING')
-      ) {
-        //See reasons here:
-        //https://github.com/bitcoinjs/coinselect/issues/86
-        console.log(`Discarding specific test - ${fixture.description}`);
-        return;
       } else {
         const feeRate = Number(fixture.feeRate);
         const utxos = fixture.inputs
@@ -79,6 +73,19 @@ const processFixtures = (
             } else if (typeof input === 'object') {
               let value = input.value;
               if ('script' in input) {
+                if (
+                  typeof input.script !== 'object' ||
+                  !('length' in input.script)
+                ) {
+                  console.log(`Discarding (SCRIPT HAS NO LENGTH)`);
+                  return;
+                }
+                if (!Number.isInteger(input.script.length)) {
+                  console.log(
+                    `Discarding (SCRIPT LENGTH FORMAT: ${input.script.length}`
+                  );
+                  return;
+                }
                 // In the input if script is HIGH then we compensate it by SUBSTRACTING output value
                 value -= (input.script.length - 107) * feeRate;
                 if (value < 1) {
@@ -98,7 +105,21 @@ const processFixtures = (
           })
           .filter(input => !!input);
 
-        const targets = fixture.outputs
+        //is fixture.outputs [] or [{}] ?
+        const noOutputs =
+          Array.isArray(fixture.outputs) &&
+          (fixture.outputs.length === 0 ||
+            (fixture.outputs.length === 1 &&
+              fixture.outputs[0] !== undefined &&
+              typeof fixture.outputs[0] === 'object' &&
+              !(fixture.outputs[0] instanceof Array) &&
+              Object.keys(fixture.outputs[0]).length === 0));
+        if (noOutputs)
+          console.log(`Discarding (NO OUTPUTS) - ${fixture.description}`);
+        if (fixture.inputs.length === 0)
+          console.log(`Discarding (NO INPUTS) - ${fixture.description}`);
+
+        const targets = (noOutputs ? [] : fixture.outputs)
           .map(output => {
             if (typeof output === 'number') {
               return {
@@ -120,6 +141,19 @@ const processFixtures = (
                 return;
               }
               if ('script' in output) {
+                if (
+                  typeof output.script !== 'object' ||
+                  !('length' in output.script)
+                ) {
+                  console.log(`Discarding (SCRIPT HAS NO LENGTH)`);
+                  return;
+                }
+                if (!Number.isInteger(output.script.length)) {
+                  console.log(
+                    `Discarding (SCRIPT LENGTH FORMAT: ${output.script.length}`
+                  );
+                  return;
+                }
                 // In the output if script is HIGH then we compensate it by ADDING output value
                 value += (output.script.length - 25) * feeRate;
               }
@@ -134,6 +168,8 @@ const processFixtures = (
           .filter(output => !!output);
         if (
           utxos.length === fixture.inputs.length &&
+          !noOutputs &&
+          fixture.inputs.length > 0 &&
           targets.length === fixture.outputs.length
         ) {
           return {
