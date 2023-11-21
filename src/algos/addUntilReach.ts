@@ -28,8 +28,6 @@ export function addUntilReach({
   validateFeeRate(feeRate);
   validateFeeRate(dustRelayFeeRate);
 
-  if (utxos.length === 0 || targets.length === 0) return;
-
   const targetsValue = targets.reduce((a, target) => a + target.value, 0);
   const utxosSoFar: Array<OutputWithValue> = [];
 
@@ -54,14 +52,13 @@ export function addUntilReach({
     if (candidateFeeContribution < 0)
       throw new Error(`candidateFeeContribution < 0`);
 
-    if (candidate.value >= candidateFeeContribution) {
+    // Only consider inputs with more value than the fee they require
+    if (candidate.value > candidateFeeContribution) {
       if (
         utxosSoFarValue + candidate.value >=
         targetsValue + txFeeWithCandidate
       ) {
-        // Evaluate if adding remainder is beneficial (is remainderValue > 0?).
-        // Note: Change is added even if it's a small amount ('dust'),
-        // as receiving any amount of change back is considered worthwhile.
+        // Evaluate if adding remainder is beneficial
         const txSizeWithCandidateAndChange = vsize(
           [candidate.output, ...utxosSoFar.map(utxo => utxo.output)],
           [remainder, ...targets.map(target => target.output)]

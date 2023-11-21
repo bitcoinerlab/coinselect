@@ -40,8 +40,6 @@ export function avoidChange({
   validateFeeRate(feeRate);
   validateFeeRate(dustRelayFeeRate);
 
-  if (utxos.length === 0 || targets.length === 0) return;
-
   const targetsValue = targets.reduce((a, target) => a + target.value, 0);
   const utxosSoFar: Array<OutputWithValue> = [];
 
@@ -61,20 +59,31 @@ export function avoidChange({
       candidate.value -
       (targetsValue + txFeeWithCandidateAndChange);
 
-    //Check that adding the candidate utxo would NOT imply that change was needed:
-    if (isDust(remainder, remainderValue, dustRelayFeeRate)) {
-      const txSizeWithCandidate = vsize(
-        [candidate.output, ...utxosSoFar.map(utxo => utxo.output)],
-        targets.map(target => target.output)
-      );
-      const txFeeWithCandidate = Math.ceil(txSizeWithCandidate * feeRate);
-      //Enough utxo value already so that it covers targets and fee?
-      if (
-        utxosSoFarValue + candidate.value >=
-        targetsValue + txFeeWithCandidate
-      )
-        return { utxos: [candidate, ...utxosSoFar], targets };
-      else utxosSoFar.push(candidate);
+    const txSizeWithCandidate = vsize(
+      [candidate.output, ...utxosSoFar.map(utxo => utxo.output)],
+      targets.map(target => target.output)
+    );
+    const txFeeWithCandidate = Math.ceil(txSizeWithCandidate * feeRate);
+
+    const txSizeSoFar = vsize(
+      utxosSoFar.map(utxo => utxo.output),
+      targets.map(target => target.output)
+    );
+    const txFeeSoFar = Math.ceil(txSizeSoFar * feeRate);
+    const candidateFeeContribution = txFeeWithCandidate - txFeeSoFar;
+
+    // Only consider inputs with more value than the fee they require
+    if (candidate.value > candidateFeeContribution) {
+      //Check that adding the candidate utxo would NOT imply that change was needed:
+      if (isDust(remainder, remainderValue, dustRelayFeeRate)) {
+        //Enough utxo value already so that it covers targets and fee?
+        if (
+          utxosSoFarValue + candidate.value >=
+          targetsValue + txFeeWithCandidate
+        )
+          return { utxos: [candidate, ...utxosSoFar], targets };
+        else utxosSoFar.push(candidate);
+      }
     }
   }
   return;

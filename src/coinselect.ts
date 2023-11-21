@@ -1,3 +1,8 @@
+//TODO: Document: isDust is always applied. outputs will be checked agains it and
+//it will prevent creating them if they are dusty
+//TODO: Document: Only consider inputs with more value than the fee they require
+//TODO: create a maxFunds algo
+//TODO: better throw if ut
 //TODO: check for dusty outputs. Throw if dusty or return undefined.
 //  -> Problem, I will not know why i returned undefined?
 //TODO: Document isDust - export it. Tell users how to check if an output is dusty.
@@ -27,8 +32,8 @@ import { OutputWithValue, DUST_RELAY_FEE_RATE } from './index';
 import { validateFeeRate, validateOutputWithValues } from './validation';
 import { addUntilReach } from './algos/addUntilReach';
 import { avoidChange } from './algos/avoidChange';
-import { isDust } from './dust';
-import { inputWeight, vsize } from './vsize';
+import { maxFunds } from './algos/maxFunds';
+import { inputWeight } from './vsize';
 
 // order by descending value, minus the inputs approximate fee
 function utxoTransferredValue(
@@ -71,18 +76,16 @@ export function coinselect({
   //(because the coinselect algo may end up choosing only non-segwit utxos).
   const isPossiblySegwitTx = utxos.some(utxo => utxo.output.isSegwit());
 
-  let coinselected;
-  if (targets) {
-    //Sort in descending utxoTransferredValue
-    //Using [...utxos] because sort mutates the input
-    const sortedUtxos = [...utxos].sort(
-      (a, b) =>
-        utxoTransferredValue(b, feeRate, isPossiblySegwitTx) -
-        utxoTransferredValue(a, feeRate, isPossiblySegwitTx)
-    );
+  //Sort in descending utxoTransferredValue
+  //Using [...utxos] because sort mutates the input
+  const sortedUtxos = [...utxos].sort(
+    (a, b) =>
+      utxoTransferredValue(b, feeRate, isPossiblySegwitTx) -
+      utxoTransferredValue(a, feeRate, isPossiblySegwitTx)
+  );
 
-    coinselected =
-      avoidChange({
+  const coinselected = targets
+    ? avoidChange({
         utxos: sortedUtxos,
         targets,
         remainder,
@@ -95,35 +98,23 @@ export function coinselect({
         remainder,
         feeRate,
         dustRelayFeeRate
+      })
+    : maxFunds({
+        utxos: sortedUtxos,
+        remainder,
+        feeRate,
+        dustRelayFeeRate
       });
+  if (coinselected) {
+    //return the same reference if nothing changed to interact nicely with
+    //reactive components
+    utxos =
+      coinselected.utxos.length === utxos.length ? utxos : coinselected.utxos;
+    targets =
+      coinselected.targets.length === targets?.length
+        ? targets
+        : coinselected.targets;
 
-    if (!coinselected) return;
-  } else {
-    if (!remainder) throw new Error('Pass a remainder to send Max Funds');
-
-    const txSize = vsize(
-      utxos.map(utxo => utxo.output),
-      [remainder]
-    );
-    const fee = Math.ceil(feeRate * txSize);
-    const utxosValue = utxos.reduce((a, utxo) => a + utxo.value, 0);
-    const remainderValue = utxosValue - fee;
-    if (!isDust(remainder, remainderValue, dustRelayFeeRate))
-      coinselected = {
-        utxos,
-        targets: [{ output: remainder, value: remainderValue }]
-      };
-    else return;
-  }
-
-  //return the same reference if nothing changed to interact nicely with
-  //reactive components
-  utxos =
-    coinselected.utxos.length === utxos.length ? utxos : coinselected.utxos;
-  targets =
-    coinselected.targets.length === targets?.length
-      ? targets
-      : coinselected.targets;
-
-  return { utxos, targets };
+    return { utxos, targets };
+  } else return;
 }
