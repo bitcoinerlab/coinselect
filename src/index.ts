@@ -13,8 +13,10 @@ import { vsize } from './vsize';
 import { coinselect } from './coinselect';
 import { addUntilReach } from './algos/addUntilReach';
 import { avoidChange } from './algos/avoidChange';
+import { isDust } from './dust';
 export {
   vsize,
+  isDust,
   coinselect,
   addUntilReach,
   avoidChange,

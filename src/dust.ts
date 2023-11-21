@@ -10,6 +10,8 @@ export function isDust(
   value: number,
   dustRelayFeeRate: number = DUST_RELAY_FEE_RATE
 ) {
+  if (!Number.isInteger(value) || value < 0)
+    throw new Error(`Invalid remainder value ${value}`);
   return (
     value <
     dustRelayFeeRate *

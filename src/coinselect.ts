@@ -1,12 +1,11 @@
-//TODO: test that the returned feeRate : fee / vsize is larger than the input one
-//Throw if this is not the case. Also throw if it is significantly larger or above 10000
+//TODO: verify that all throws are preventable by checking the passed inputs. do not throw
+//for an eventuality in the code. For example, if no inputs can be extracted for not
+//passing enough value, will this make me throw on validatedFeeAndVsize or somewhere else?
 //TODO: test throw because isDust one target, test throw if no inputs or no outputs
 //TODO: Document: isDust is always applied. outputs will be checked agains it and
 //it will prevent creating them if they are dusty
 //TODO: Document: Only consider inputs with more value than the fee they require
-//TODO: better throw if ut
-//TODO: check for dusty outputs. Throw if dusty or return undefined.
-//  -> Problem, I will not know why i returned undefined?
+//TODO: check for dusty outputs. Throw if dusty.
 //TODO: Document isDust - export it. Tell users how to check if an output is dusty.
 //  -> Will throw if passing empty inputs, empty outputs (or dusty)
 //  -> Change may or may not be added depending on dust

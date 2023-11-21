@@ -54,7 +54,7 @@ export function addUntilReach({
     const candidateFeeContribution = txFeeWithCandidate - txFeeSoFar;
 
     if (candidateFeeContribution < 0)
-      throw new Error(`candidateFeeContribution < 0`);
+      throw new Error(`candidateFeeContribution < 0`); //TODO, simply return? maybe we dont have enough inpuyt value? This has to be applied in rest of algos
 
     // Only consider inputs with more value than the fee they require
     if (candidate.value > candidateFeeContribution) {
@@ -74,6 +74,7 @@ export function addUntilReach({
           utxosSoFarValue +
           candidate.value -
           (targetsValue + txFeeWithCandidateAndChange);
+        if (remainderValue < 0) throw new Error(`remainderValue < 0`);
 
         //return the same reference if nothing changed to interact nicely with
         //reactive components

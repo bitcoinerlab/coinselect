@@ -57,6 +57,7 @@ export function avoidChange({
       utxosSoFarValue +
       candidate.value -
       (targetsValue + txFeeWithCandidateAndChange);
+    if (remainderValue < 0) throw new Error(`remainderValue < 0`);
 
     const txSizeWithCandidate = vsize(
       [candidate.output, ...utxosSoFar.map(utxo => utxo.output)],

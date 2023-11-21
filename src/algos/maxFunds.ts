@@ -42,7 +42,7 @@ export function maxFunds({
     );
     const feeContribution =
       allUtxosFee - Math.ceil(feeRate * txSizeWithoutUtxo);
-    if (feeContribution < 0) throw new Error(`feeContribution < 0`);
+    if (feeContribution < 0) throw new Error(`feeContribution < 0`); //TODO, simply return? maybe we dont have enough inpuyt value? This has to be applied in rest of algos
     return validUtxo.value > feeContribution;
   });
 
@@ -55,6 +55,7 @@ export function maxFunds({
   );
   const validUtxosValue = validUtxos.reduce((a, utxo) => a + utxo.value, 0);
   const remainderValue = validUtxosValue - validFee;
+  if (remainderValue < 0) throw new Error(`remainderValue < 0`);
   if (!isDust(remainder, remainderValue, dustRelayFeeRate)) {
     //return the same reference if nothing changed to interact nicely with
     //reactive components
