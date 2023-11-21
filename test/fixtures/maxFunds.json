@@ -1,6 +1,6 @@
 [
   {
-    "description": "3 to 1",
+    "description": "maxFunds 3 utxos",
     "remainder": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)",
     "feeRate": 10,
     "expected": {
@@ -38,11 +38,10 @@
         "value": 10000,
         "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
       }
-    ],
-    "targets": []
+    ]
   },
   {
-    "description": "1 to 2, output is dust (no result)",
+    "description": "maxFunds, output is dust (no result)",
     "remainder": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)",
     "feeRate": 10,
     "expected": {
@@ -53,7 +52,6 @@
         "value": 2000,
         "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
       }
-    ],
-    "targets": []
+    ]
   }
 ]

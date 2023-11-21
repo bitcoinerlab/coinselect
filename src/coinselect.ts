@@ -74,18 +74,19 @@ export function coinselect({
   //utxo for computing the utxo ordering. This is an approximation.
   //Note that having one segwit utxo does not mean the final tx will be segwit
   //(because the coinselect algo may end up choosing only non-segwit utxos).
-  const isPossiblySegwitTx = utxos.some(utxo => utxo.output.isSegwit());
 
-  //Sort in descending utxoTransferredValue
-  //Using [...utxos] because sort mutates the input
-  const sortedUtxos = [...utxos].sort(
-    (a, b) =>
-      utxoTransferredValue(b, feeRate, isPossiblySegwitTx) -
-      utxoTransferredValue(a, feeRate, isPossiblySegwitTx)
-  );
-
-  const coinselected = targets
-    ? avoidChange({
+  let coinselected;
+  if (targets) {
+    const isPossiblySegwitTx = utxos.some(utxo => utxo.output.isSegwit());
+    //Sort in descending utxoTransferredValue
+    //Using [...utxos] because sort mutates the input
+    const sortedUtxos = [...utxos].sort(
+      (a, b) =>
+        utxoTransferredValue(b, feeRate, isPossiblySegwitTx) -
+        utxoTransferredValue(a, feeRate, isPossiblySegwitTx)
+    );
+    coinselected =
+      avoidChange({
         utxos: sortedUtxos,
         targets,
         remainder,
@@ -98,13 +99,10 @@ export function coinselect({
         remainder,
         feeRate,
         dustRelayFeeRate
-      })
-    : maxFunds({
-        utxos: sortedUtxos,
-        remainder,
-        feeRate,
-        dustRelayFeeRate
       });
+  } else {
+    coinselected = maxFunds({ utxos, remainder, feeRate, dustRelayFeeRate });
+  }
   if (coinselected) {
     //return the same reference if nothing changed to interact nicely with
     //reactive components

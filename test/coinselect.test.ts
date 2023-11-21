@@ -1,4 +1,4 @@
-import { coinselect, addUntilReach, OutputWithValue } from '../dist';
+import { coinselect, addUntilReach } from '../dist';
 import * as secp256k1 from '@bitcoinerlab/secp256k1';
 import { DescriptorsFactory } from '@bitcoinerlab/descriptors';
 const { Output } = DescriptorsFactory(secp256k1);
@@ -20,15 +20,18 @@ for (const fixturesWithDescription of [
           value: utxo.value,
           output: new Output({ descriptor: utxo.descriptor })
         }));
-        const targets = fixture.targets.map(target => ({
-          value: target.value,
-          output: new Output({ descriptor: target.descriptor })
-        }));
+        const targets =
+          'targets' in fixture &&
+          Array.isArray(fixture.targets) &&
+          fixture.targets.map(target => ({
+            value: target.value,
+            output: new Output({ descriptor: target.descriptor })
+          }));
         const coinselected =
-          setDescription === 'coinselect'
+          setDescription !== 'addUntilReach'
             ? coinselect({
-                utxos: utxos as Array<OutputWithValue>,
-                targets: targets as Array<OutputWithValue>,
+                utxos,
+                ...(targets ? { targets } : {}),
                 remainder: new Output({ descriptor: fixture.remainder }),
                 feeRate: fixture.feeRate,
                 // This is probably a bad idea, but we're m using tests fixtures
@@ -37,8 +40,8 @@ for (const fixturesWithDescription of [
                 dustRelayFeeRate: fixture.feeRate
               })
             : addUntilReach({
-                utxos: utxos as Array<OutputWithValue>,
-                targets: targets as Array<OutputWithValue>,
+                utxos,
+                targets: targets || [],
                 remainder: new Output({ descriptor: fixture.remainder }),
                 feeRate: fixture.feeRate,
                 // This is probably a bad idea, but we're m using tests fixtures
@@ -49,7 +52,9 @@ for (const fixturesWithDescription of [
         //console.log(
         //  JSON.stringify(
         //    {
+        //      setDescription,
         //      desc: fixture.description,
+        //      targets,
         //      coinselected,
         //      expected: fixture.expected
         //    },
@@ -63,7 +68,10 @@ for (const fixturesWithDescription of [
         let expectedRemainderValue: number | undefined;
         if (
           fixture.expected.outputs &&
-          fixture.expected.outputs.length > fixture.targets.length
+          fixture.expected.outputs.length >
+            ('targets' in fixture && Array.isArray(fixture.targets)
+              ? fixture.targets.length
+              : 0)
         ) {
           const lastExpectedOutput =
             fixture.expected.outputs[fixture.expected.outputs.length - 1]!;
