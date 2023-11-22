@@ -15,4 +15,24 @@ describe('errors', () => {
       })
     ).toThrow('Target #0 is dusty');
   });
+  test('no inputs', () => {
+    expect(() =>
+      coinselect({
+        utxos: [],
+        targets: [{ output: new Output({ descriptor }), value: 1000 }],
+        remainder: new Output({ descriptor }),
+        feeRate: 1
+      })
+    ).toThrow('Empty group');
+  });
+  test('no outputs', () => {
+    expect(() =>
+      coinselect({
+        utxos: [{ output: new Output({ descriptor }), value: 1000 }],
+        targets: [],
+        remainder: new Output({ descriptor }),
+        feeRate: 1
+      })
+    ).toThrow('Empty group');
+  });
 });
