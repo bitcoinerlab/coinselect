@@ -3,6 +3,7 @@ import { DUST_RELAY_FEE_RATE, OutputWithValue } from '../index';
 import {
   validateFeeRate,
   validateOutputWithValues,
+  validateDust,
   validatedFeeAndVsize
 } from '../validation';
 import { vsize } from '../vsize';
@@ -29,6 +30,7 @@ export function addUntilReach({
 }) {
   validateOutputWithValues(utxos);
   validateOutputWithValues(targets);
+  validateDust(targets);
   validateFeeRate(feeRate);
   validateFeeRate(dustRelayFeeRate);
 

@@ -1,6 +1,6 @@
-import type { OutputWithValue } from './index';
+import { OutputWithValue, MAX_FEE_RATE, DUST_RELAY_FEE_RATE } from './index';
 import { vsize } from './vsize';
-const MAX_FEE_RATE = 10 * 1000;
+import { isDust } from './dust';
 export function validateOutputWithValues(
   outputAndValues: Array<OutputWithValue>
 ) {
@@ -16,6 +16,15 @@ export function validateFeeRate(feeRate: number) {
   if (!Number.isFinite(feeRate) || feeRate < 1 || feeRate > MAX_FEE_RATE) {
     throw new Error(`Fee rate ${feeRate} not supported`);
   }
+}
+
+export function validateDust(
+  targets: Array<OutputWithValue>,
+  dustRelayFeeRate: number = DUST_RELAY_FEE_RATE
+) {
+  for (const [index, target] of Object.entries(targets))
+    if (isDust(target.output, target.value, dustRelayFeeRate))
+      throw new Error(`Target #${index} is dusty`);
 }
 export function validatedFeeAndVsize(
   utxos: Array<OutputWithValue>,

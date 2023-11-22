@@ -1,3 +1,5 @@
+//TODO: test dustThreshold for p2pkh, p2wpkh
+//TODO: the throw for remainderValue < 0 throws for no reason. This one may be bad too: (candidateFeeContribution < 0), feeContribution < 0
 //TODO: verify that all throws are preventable by checking the passed inputs. do not throw
 //for an eventuality in the code. For example, if no inputs can be extracted for not
 //passing enough value, will this make me throw on validatedFeeAndVsize or somewhere else?
@@ -30,11 +32,16 @@
 //TODO addr(sh) is assumed to be p2shp2wpkh, say so in documentation. If sh is wanted to be used for generic scripts then use sh(miniscript)
 import type { OutputInstance } from '@bitcoinerlab/descriptors';
 import { OutputWithValue, DUST_RELAY_FEE_RATE } from './index';
-import { validateFeeRate, validateOutputWithValues } from './validation';
+import {
+  validateFeeRate,
+  validateOutputWithValues,
+  validateDust
+} from './validation';
 import { addUntilReach } from './algos/addUntilReach';
 import { avoidChange } from './algos/avoidChange';
 import { maxFunds } from './algos/maxFunds';
 import { inputWeight } from './vsize';
+import { isSegwitTx } from './segwit';
 
 // order by descending value, minus the inputs approximate fee
 function utxoTransferredValue(
@@ -62,7 +69,10 @@ export function coinselect({
   dustRelayFeeRate?: number;
 }) {
   validateOutputWithValues(utxos);
-  if (targets) validateOutputWithValues(targets);
+  if (targets) {
+    validateOutputWithValues(targets);
+    validateDust(targets);
+  }
   validateFeeRate(feeRate);
   validateFeeRate(dustRelayFeeRate);
 
@@ -73,7 +83,7 @@ export function coinselect({
 
   let coinselected;
   if (targets) {
-    const isPossiblySegwitTx = utxos.some(utxo => utxo.output.isSegwit());
+    const isPossiblySegwitTx = isSegwitTx(utxos.map(utxo => utxo.output));
     //Sort in descending utxoTransferredValue
     //Using [...utxos] because sort mutates the input
     const sortedUtxos = [...utxos].sort(

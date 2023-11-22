@@ -1,25 +1,15 @@
 // Copyright (c) 2023 Jose-Luis Landabaso - https://bitcoinerlab.com
 // Distributed under the MIT software license
-type InputOrigin = { txHex: string; vout: number };
-type OutputWithValue = {
-  output: OutputInstance;
-  value: number;
-};
-
-export const DUST_RELAY_FEE_RATE = 3;
 
 import type { OutputInstance } from '@bitcoinerlab/descriptors';
-import { vsize } from './vsize';
-import { coinselect } from './coinselect';
-import { addUntilReach } from './algos/addUntilReach';
-import { avoidChange } from './algos/avoidChange';
-import { isDust } from './dust';
-export {
-  vsize,
-  isDust,
-  coinselect,
-  addUntilReach,
-  avoidChange,
-  InputOrigin,
-  OutputWithValue
-};
+export { vsize } from './vsize';
+export { dustThreshold } from './dust';
+export { coinselect } from './coinselect';
+export { maxFunds } from './algos/maxFunds';
+export { addUntilReach } from './algos/addUntilReach';
+export { avoidChange } from './algos/avoidChange';
+
+export const DUST_RELAY_FEE_RATE = 3;
+export const MAX_FEE_RATE = 10 * 1000; //10 times larger than 2017 peak
+export type InputOrigin = { txHex: string; vout: number };
+export type OutputWithValue = { output: OutputInstance; value: number };

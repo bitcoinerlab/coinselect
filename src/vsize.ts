@@ -9,43 +9,9 @@
 
 import type { PartialSig } from 'bip174/src/lib/interfaces';
 import type { OutputInstance } from '@bitcoinerlab/descriptors';
-import { payments } from 'bitcoinjs-lib';
 import { encodingLength } from 'varuint-bitcoin';
-
-function guessOutput(output: OutputInstance) {
-  function guessSH(output: Buffer) {
-    try {
-      payments.p2sh({ output });
-      return true;
-    } catch (err) {
-      return false;
-    }
-  }
-  function guessWPKH(output: Buffer) {
-    try {
-      payments.p2wpkh({ output });
-      return true;
-    } catch (err) {
-      return false;
-    }
-  }
-  function guessPKH(output: Buffer) {
-    try {
-      payments.p2pkh({ output });
-      return true;
-    } catch (err) {
-      return false;
-    }
-  }
-  const isPKH = guessPKH(output.getScriptPubKey());
-  const isWPKH = guessWPKH(output.getScriptPubKey());
-  const isSH = guessSH(output.getScriptPubKey());
-
-  if ([isPKH, isWPKH, isSH].filter(Boolean).length > 1)
-    throw new Error('Cannot have multiple output types.');
-
-  return { isPKH, isWPKH, isSH };
-}
+import { payments } from 'bitcoinjs-lib';
+import { guessOutput, isSegwitTx } from './segwit';
 
 function varSliceSize(someScript: Buffer): number {
   const length = someScript.length;
@@ -238,27 +204,23 @@ export function vsize(
    */
   signaturesPerInput?: Array<Array<PartialSig>>
 ) {
-  const isSegwitTx = inputs.some(input => {
-    const isSegwit = input.isSegwit();
-    const expansion = input.expand().expandedExpression;
-    const { isPKH, isWPKH, isSH } = guessOutput(input);
-    if (!expansion && !isPKH && !isWPKH && !isSH)
-      throw new Error('Incompatible expansion and output');
-    //we will assume that any addr(SH_TYPE_ADDRESS) is in fact SH_WPKH.
-    return isSegwit !== undefined ? isSegwit : isWPKH || (isSH && !expansion);
-  });
+  const isSegwitTxValue = isSegwitTx(inputs);
 
   let totalWeight = 0;
   inputs.forEach(function (input, index) {
     if (signaturesPerInput)
-      totalWeight += inputWeight(input, isSegwitTx, signaturesPerInput[index]);
-    else totalWeight += inputWeight(input, isSegwitTx);
+      totalWeight += inputWeight(
+        input,
+        isSegwitTxValue,
+        signaturesPerInput[index]
+      );
+    else totalWeight += inputWeight(input, isSegwitTxValue);
   });
   outputs.forEach(function (output) {
     totalWeight += outputWeight(output);
   });
 
-  if (isSegwitTx) totalWeight += 2;
+  if (isSegwitTxValue) totalWeight += 2;
 
   totalWeight += 8 * 4;
   totalWeight += encodingLength(inputs.length) * 4;
