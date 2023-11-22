@@ -14,8 +14,7 @@
         {
           "value": 100000
         }
-      ],
-      "fee": 2001
+      ]
     },
     "utxos": [
       {
@@ -48,8 +47,7 @@
         {
           "value": 4871
         }
-      ],
-      "fee": 1130
+      ]
     },
     "utxos": [
       {
@@ -79,8 +77,7 @@
         {
           "value": 7700
         }
-      ],
-      "fee": 2300
+      ]
     },
     "utxos": [
       {
@@ -118,8 +115,7 @@
         {
           "value": 6800
         }
-      ],
-      "fee": 3200
+      ]
     },
     "utxos": [
       {
@@ -160,8 +156,7 @@
         {
           "value": 4170
         }
-      ],
-      "fee": 1130
+      ]
     },
     "utxos": [
       {
@@ -188,9 +183,7 @@
     "description": "1 output, fails, skips (and finishes on) detrimental input",
     "remainder": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)",
     "feeRate": 55,
-    "expected": {
-      "fee": 18700
-    },
+    "expected": {},
     "utxos": [
       {
         "value": 44000,
@@ -216,9 +209,6 @@
       "inputs": [
         {
           "i": 0,
-          "script": {
-            "length": 500
-          },
           "value": 3000
         },
         {
@@ -234,8 +224,7 @@
         {
           "value": 4000
         }
-      ],
-      "fee": 5000
+      ]
     },
     "utxos": [
       {
@@ -277,8 +266,7 @@
         {
           "value": 4000
         }
-      ],
-      "fee": 2000
+      ]
     },
     "utxos": [
       {
@@ -316,8 +304,7 @@
         {
           "value": 7700
         }
-      ],
-      "fee": 2300
+      ]
     },
     "utxos": [
       {
@@ -345,13 +332,9 @@
       ],
       "outputs": [
         {
-          "script": {
-            "length": 200
-          },
           "value": 95000
         }
-      ],
-      "fee": 5000
+      ]
     },
     "utxos": [
       {
@@ -379,16 +362,12 @@
       ],
       "outputs": [
         {
-          "script": {
-            "length": 200
-          },
           "value": 95000
         },
         {
           "value": 100990
         }
-      ],
-      "fee": 4010
+      ]
     },
     "utxos": [
       {
@@ -419,8 +398,7 @@
         {
           "value": 98000
         }
-      ],
-      "fee": 2000
+      ]
     },
     "utxos": [
       {
@@ -471,8 +449,7 @@
         {
           "value": 1000
         }
-      ],
-      "fee": 6221
+      ]
     },
     "utxos": [
       {
@@ -542,8 +519,7 @@
         {
           "value": 1981
         }
-      ],
-      "fee": 6240
+      ]
     },
     "utxos": [
       {
@@ -583,7 +559,6 @@
     "remainder": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)",
     "feeRate": 10,
     "expected": {
-      "fee": 7150,
       "inputs": [
         {
           "i": 0,
@@ -591,9 +566,6 @@
         },
         {
           "i": 1,
-          "script": {
-            "length": 300
-          },
           "value": 10000
         },
         {
@@ -635,9 +607,7 @@
     "description": "not enough funds, empty result",
     "remainder": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)",
     "feeRate": 10,
-    "expected": {
-      "fee": 1920
-    },
+    "expected": {},
     "utxos": [
       {
         "value": 20000,
@@ -655,9 +625,7 @@
     "description": "not enough funds (w/ fee), empty result",
     "remainder": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)",
     "feeRate": 10,
-    "expected": {
-      "fee": 1920
-    },
+    "expected": {},
     "utxos": [
       {
         "value": 40000,

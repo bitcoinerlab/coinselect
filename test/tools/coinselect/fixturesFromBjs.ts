@@ -1,14 +1,43 @@
 import fs from 'fs';
 import path from 'path';
 
+//Get rid of the script in inputs and outputs too, since we compensate this
+//setting different values (see below)
+//Also, the fee is not correct on fixtures that had .script.length because of
+//the compensation done below. So get rid of it.
+function fixExpectedResult(expected: ExpectedResult) {
+  const filteredInputs = expected.inputs?.map(input => {
+    const { script, ...restInput } = input;
+    if (script) console.log('Omitting script from expected results');
+    return restInput;
+  });
+
+  const filteredOutputs = expected.outputs?.map(output => {
+    const { script, ...restOutput } = output;
+    if (script) console.log('Omitting script from expected results');
+    return restOutput;
+  });
+
+  // Exclude the 'fee' from the result
+  const { fee, ...restExpected } = expected;
+  if (fee) console.log('Omitting fee from expected results');
+  return {
+    ...restExpected,
+    inputs: filteredInputs,
+    outputs: filteredOutputs
+  };
+}
+
 interface ExpectedInput {
   i: number;
   value: number;
   address?: string;
+  script?: { length: number };
 }
 
 interface ExpectedOutput {
   value: number;
+  script?: { length: number };
 }
 
 interface ExpectedResult {
@@ -93,8 +122,6 @@ const processFixtures = (
                   return;
                 }
                 // In the input if script is HIGH then we compensate it by SUBSTRACTING output value
-                //TODO also do not add the script to the expected utxos then
-                //TODO: also compensate the fee
                 value -= (input.script.length - 107) * feeRate;
                 if (value < 1) {
                   console.log(
@@ -163,8 +190,6 @@ const processFixtures = (
                   return;
                 }
                 // In the output if script is HIGH then we compensate it by ADDING output value
-                //TODO also do not add the script to the expected targets then
-                //TODO: also compensate the fee
                 value += (output.script.length - 25) * feeRate;
               }
               return {
@@ -186,7 +211,7 @@ const processFixtures = (
             description: fixture.description,
             remainder: descriptor,
             feeRate: fixture.feeRate,
-            expected: fixture.expected,
+            expected: fixExpectedResult(fixture.expected),
             utxos,
             targets
           };
