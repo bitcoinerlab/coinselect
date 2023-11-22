@@ -67,7 +67,7 @@ const { utxos, targets, fee, vsize } = coinselect({
 
 This code produces the following result:
 
-```json
+```typescript
 {
   "utxos": [
     {
