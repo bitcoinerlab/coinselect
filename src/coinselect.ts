@@ -1,7 +1,3 @@
-//TODO: the throw for remainderValue < 0 throws for no reason. This one may be bad too: (candidateFeeContribution < 0), feeContribution < 0
-//TODO: verify that all throws are preventable by checking the passed inputs. do not throw
-//for an eventuality in the code. For example, if no inputs can be extracted for not
-//passing enough value, will this make me throw on validatedFeeAndVsize or somewhere else?
 //TODO: test throw because isDust one target, test throw if no inputs or no outputs
 //TODO: Document: isDust is always applied. outputs will be checked agains it and
 //it will prevent creating them if they are dusty
@@ -12,9 +8,8 @@
 //TODO: document differenfces wrt bitcoinjs/coinselect
 //  dustRelayFeeRate, no inputs throws, no outputs throws on algos, it passes on coinselect for
 //  sendMaxFunds. Create an algo sendMaxFunds. Must pass tagets = undefined or no pass
-//TODO: further test send max funds
-//TODO addr(sh) is assumed to be p2shp2wpkh, say so in documentation.
-//If sh is wanted to be used for generic scripts then use sh(miniscript)
+//TODO document: addr(sh) is assumed to be p2shp2wpkh, say so in documentation.
+//  If sh is wanted to be used for generic scripts then use sh(miniscript)
 import type { OutputInstance } from '@bitcoinerlab/descriptors';
 import { OutputWithValue, DUST_RELAY_FEE_RATE } from './index';
 import {
