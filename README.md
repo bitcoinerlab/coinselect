@@ -111,7 +111,7 @@ Having gone through the basic usage of the library, let's now focus on some esse
 
 If you'd pay more in fees than the value of the output to spend something, then this is considered dust.
 
-To ensure transactions are relayable by Bitcoin nodes, this library enforces a dust threshold. Transactions with outputs below this threshold may not be accepted by the network. The library proactively throws an error for targets below the dust threshold to prevent the creation of such transactions.
+To ensure transactions are relayable by Bitcoin nodes, this library enforces a dust threshold. Transactions with outputs below this threshold may not be accepted by the network. The library proactively throws an error for targets below the dust threshold to prevent the creation of such transactions. Also, the library does not generate change if it is below the dust threshold.
 
 Use the [`dustThreshold`](https://bitcoinerlab.com/modules/coinselect/api/functions/dustThreshold.html) function prior to creating targets to ensure that output values exceed the minimum threshold (`minOutputValue`):
 
