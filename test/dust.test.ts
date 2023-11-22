@@ -21,6 +21,7 @@ describe('dust', () => {
           descriptor: 'addr(bc1qzne9qykh9j55qt8ccqamusp099spdfr49tje60)'
         })
       )
+      //Why not 294: https://github.com/lightningnetwork/lnd/issues/3946
     ).toBe(297);
   });
 });

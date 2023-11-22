@@ -43,8 +43,9 @@ export function isSegwit(output: OutputInstance) {
   let isSegwit = output.isSegwit();
   const expansion = output.expand().expandedExpression;
   const { isPKH, isWPKH, isSH } = guessOutput(output);
-  if (isPKH) isSegwit = false;
-  if (isWPKH) isSegwit = true;
+  //expansion is not generated for addr() descriptors:
+  if (!expansion && isPKH) isSegwit = false;
+  if (!expansion && isWPKH) isSegwit = true;
   if (!expansion && isSH) isSegwit = true; //Assume PSH-P2WPKH
   if (isSegwit === undefined)
     throw new Error('Cannot guess whether the Output is Segwit or not');

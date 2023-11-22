@@ -11,7 +11,7 @@ import type { PartialSig } from 'bip174/src/lib/interfaces';
 import type { OutputInstance } from '@bitcoinerlab/descriptors';
 import { encodingLength } from 'varuint-bitcoin';
 import { payments } from 'bitcoinjs-lib';
-import { guessOutput, isSegwitTx } from './segwit';
+import { guessOutput, isSegwit, isSegwitTx } from './segwit';
 
 function varSliceSize(someScript: Buffer): number {
   const length = someScript.length;
@@ -58,6 +58,8 @@ export function inputWeight(
   isSegwitTx: boolean,
   signatures?: Array<PartialSig>
 ) {
+  if (isSegwit(input) && !isSegwitTx)
+    throw new Error(`a tx is segwit if at least one input is segwit`);
   const errorMsg =
     'Input type not implemented. Currently supported: pkh(KEY), wpkh(KEY), \
     sh(wpkh(KEY)), sh(wsh(MINISCRIPT)), sh(MINISCRIPT), wsh(MINISCRIPT), \

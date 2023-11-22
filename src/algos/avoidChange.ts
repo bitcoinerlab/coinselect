@@ -59,7 +59,6 @@ export function avoidChange({
       utxosSoFarValue +
       candidate.value -
       (targetsValue + txFeeWithCandidateAndChange);
-    if (remainderValue < 0) throw new Error(`remainderValue < 0`);
 
     const txSizeWithCandidate = vsize(
       [candidate.output, ...utxosSoFar.map(utxo => utxo.output)],
@@ -73,6 +72,8 @@ export function avoidChange({
     );
     const txFeeSoFar = Math.ceil(txSizeSoFar * feeRate);
     const candidateFeeContribution = txFeeWithCandidate - txFeeSoFar;
+    if (candidateFeeContribution < 0)
+      throw new Error(`candidateFeeContribution < 0`);
 
     // Only consider inputs with more value than the fee they require
     if (candidate.value > candidateFeeContribution) {
