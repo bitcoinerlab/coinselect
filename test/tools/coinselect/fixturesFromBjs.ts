@@ -53,6 +53,12 @@ const processFixtures = (
         typeof fixture.feeRate === 'number' &&
         Number.isInteger(fixture.feeRate) &&
         fixture.feeRate >= 1;
+      if (fixture.description === '1 output, change expected, value > 2^32') {
+        console.log(
+          `Discarding speciffic test (See 'https://github.com/bitcoinjs/coinselect/issues/86#issuecomment-1822608202') - ${fixture.description}`
+        );
+        return;
+      }
       if (!testFeeRate) {
         console.log(
           `Discarding (BAD FEE: ${fixture.feeRate}) - ${fixture.description}`

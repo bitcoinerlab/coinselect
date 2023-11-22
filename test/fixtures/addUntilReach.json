@@ -65,40 +65,6 @@
     ]
   },
   {
-    "description": "1 output, change expected, value > 2^32",
-    "remainder": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)",
-    "feeRate": 5,
-    "expected": {
-      "inputs": [
-        {
-          "i": 0,
-          "value": 5000000000
-        }
-      ],
-      "outputs": [
-        {
-          "value": 1
-        },
-        {
-          "value": 4999998869
-        }
-      ],
-      "fee": 1130
-    },
-    "utxos": [
-      {
-        "value": 5000000000,
-        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
-      }
-    ],
-    "targets": [
-      {
-        "value": 1,
-        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
-      }
-    ]
-  },
-  {
     "description": "1 output, sub-optimal inputs (if re-ordered), direct possible",
     "remainder": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)",
     "feeRate": 10,
