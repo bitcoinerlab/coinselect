@@ -244,7 +244,7 @@ To spend using the first branch, the scriptWitness/unlockingScript should be: `<
 
 ### Specifying Spending Branch in UTXOs
 
-The [@bitcoinerlab/descriptors](https://bitcoinerlab.com/modules/descriptors) library provides a method to designate spending paths in Miniscript. For instance, when creating an `Output`, you can specify the expected spending path:
+The [@bitcoinerlab/descriptors](https://bitcoinerlab.com/modules/descriptors) library provides a method to designate spending paths in Miniscript. For instance, when creating an `Output`, you can specify the desired spending path:
 
 ```typescript
 import * as secp256k1 from '@bitcoinerlab/secp256k1';
@@ -252,15 +252,17 @@ import { OutputInstance, DescriptorsFactory } from '@bitcoinerlab/descriptors';
 const { parseKeyExpression, Output } = DescriptorsFactory(secp256k1);
 
 const Key1: string = "[73c5da0a/44'/0'/0']xpubDC5FSnBiZDMmhiuCmWAYsLwgLYrrT9rAqvTySfuCCrgsWz8wxMXUS9Tb9iVMvcRbvFcAHGkMD5Kx8koh4GquNGNTfohfk7pgjhaPCdXpoba/0/0"
+const Key2: string = ...; // Some other Key Expression...
 
 const pubKey1: Buffer = parseKeyExpression({ keyExpression: Key1 }).pubkey;
+
 const output: OutputInstance = new Output({
     descriptor: `wsh(andor(pk(${Key1}),older(10),pkh(${Key2})))`, 
     signersPubKeys: [pubKey1]
 });
 ```
 
-This setup informs the `OutputInstance` of the expected spending path, enabling the coinselect algorithms to precisely calculate the witness size. The library constructs a satisfaction (unlockingScript/scriptWitness) based on the assumption that only signatures specified in `signersPubKeys` are available, selecting the most size-efficient witness possible. If the spending path depends on pre-images, you should also include a `preimages` parameter. For a detailed understanding, refer to the [API documentation](https://bitcoinerlab.com/modules/descriptors/api/classes/_Internal_.Output.html#constructor).
+This setup informs the `OutputInstance` of the desired spending path, enabling the coinselect algorithms to precisely calculate the witness size. The library constructs a satisfaction (unlockingScript/scriptWitness) based on the assumption that only signatures specified in `signersPubKeys` must be used, selecting the most size-efficient witness possible with those signatures. If the spending path depends on pre-images, you should also include a `preimages` parameter. For a detailed understanding, refer to the [API documentation](https://bitcoinerlab.com/modules/descriptors/api/classes/_Internal_.Output.html#constructor).
 
 It's important to note that when calculating the witness size, actual signatures are not yet present. Therefore, the assumption is made for 72-byte DER-encoded signatures. Consequently, the final vsize after the transaction has been signed may be slightly smaller than the initial estimate.
 
