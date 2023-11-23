@@ -1,4 +1,3 @@
-//TODO: Document: Only consider inputs with more value than the fee they require
 //TODO: docs: add a reference to the API
 import type { OutputInstance } from '@bitcoinerlab/descriptors';
 import { OutputWithValue, DUST_RELAY_FEE_RATE } from './index';
@@ -42,6 +41,9 @@ function utxoTransferredValue(
  * To transfer all funds from your UTXOs to a recipient address, specify the
  * recipient in the `remainder` argument and omit the `targets`. This way,
  * the {@link maxFunds maxFunds} algorithm is used.
+ *
+ * UTXOs that do not provide enough value to cover their respective fee
+ * contributions are automatically excluded.
  *
  * *NOTE:* When the descriptor in an input is `addr(address)`, it is assumed
  * that any `addr(SH_TYPE_ADDRESS)` is in fact a Segwit `SH_WPKH`

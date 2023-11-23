@@ -13,7 +13,10 @@ import { isDust } from '../dust';
  * To utilize this function, specify the recipient output in the `remainder` argument, while omitting the `targets` parameter.
  * In this context, the `remainder` serves as the recipient of the funds.
  *
- * Note: This function does not reorder UTXOs prior to selection.
+ * Notes:
+ *
+ * - This function does not reorder UTXOs prior to selection.
+ * - UTXOs that do not provide enough value to cover their respective fee contributions are automatically excluded.
  *
  * Refer to {@link coinselect coinselect} for additional details on input parameters and expected returned values.
  */

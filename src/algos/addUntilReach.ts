@@ -15,7 +15,11 @@ import { isDust } from '../dust';
  * This function does not reorder UTXOs before selection. It evaluates whether creating change
  * is feasible, with consideration of whether the change exceeds the dust threshold.
  *
- * Note: The UTXOs passed to this function are not pre-ordered.
+ * Notes:
+ *
+ * - This function does not reorder UTXOs prior to selection.
+ * - UTXOs that lack sufficient value to cover the necessary spending
+ * fees are automatically excluded from the selection process.
  *
  * Refer to {@link coinselect coinselect} for additional details on input parameters and expected returned values.
  */

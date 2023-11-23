@@ -16,7 +16,11 @@ import { isDust } from '../dust';
  * to assess if hypothetical change would NOT be considered dust, thereby rendering
  * the solution unviable.
  *
- * This function does not reorder UTXOs prior to selection.
+ * Notes:
+ *
+ * - This function does not reorder UTXOs prior to selection.
+ * - UTXOs that lack sufficient value to cover the necessary spending
+ * fees are automatically excluded from the selection process.
  *
  * Refer to {@link coinselect coinselect} for additional details on input parameters and expected returned values.
  */

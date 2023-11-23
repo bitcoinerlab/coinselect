@@ -5,6 +5,8 @@ Coinselect is a TypeScript library designed for Bitcoin transaction management. 
 
 For an introduction to Bitcoin descriptors, please refer to [@bitcoinerlab/descriptors](https://bitcoinerlab.com/modules/descriptors) if you're unfamiliar with them.
 
+For detailed API documentation, visit [https://bitcoinerlab.com/modules/coinselect/api](https://bitcoinerlab.com/modules/coinselect/api).
+
 ## Features
 
 - Utilizes Bitcoin Descriptor notation for expressing UTXOs and targets.
@@ -89,6 +91,8 @@ This code produces the following result:
 
 **Note on No Solutions:** If `coinselect` and similar algorithms in this library can't find a feasible combination of UTXOs for the specified targets, they return `undefined`. This means the transaction isn't viable with the given inputs and constraints. Ensure to handle such cases in your code, perhaps by informing the user or modifying the input parameters.
 
+**Note on `addr()`:** When using `addr(SH_ADDRESS)` descriptors, the library assumes they represent Segwit `SH_WPKH_ADDRESS`. For scripts, use the `sh(MINISCRIPT)` descriptor format.
+
 Additionally, if you only need to compute the `vsize` for a specific set of inputs and outputs, you can use the following approach:
 
 ```typescript
@@ -146,15 +150,17 @@ We extend our gratitude and acknowledge the significant contributions of the bit
 
 The default algorithm within the `coinselect` library, as shown in the earlier example, sorts UTXOs by their descending net value (each UTXO's value minus the fees needed to spend it). It initially attempts to find a solution using the `avoidChange` algorithm, which aims to select UTXOs such that no change is required. If this is not possible, it then applies the `addUntilReach` algorithm, which adds UTXOs until the total value exceeds the target value plus fees. Change is added only if it's above the dust threshold. The `avoidChange` and `addUntilReach` algorithms are further elaborated on in subsequent sections.
 
+Note that in the selection process, each UTXO's contribution towards the transaction fee is evaluated. UTXOs that do not provide enough value to cover their respective fee contributions are automatically excluded. This exclusion criterion is applied across all algorithms within the library to ensure efficient transaction management.
+
 ### Sending Max Funds
 
-This algorithm is designed for scenarios where you want to transfer all funds from your UTXOs to a recipient address. Specify the recipient in the `remainder` argument and omit the `targets`. 
+The `maxFunds` algorithm is tailored for situations where the aim is to transfer all funds from available UTXOs to a single recipient address. To utilize this functionality, either directly import and use `maxFunds` or apply `coinselect` by specifying the recipient's address in the `remainder` argument while omitting the `targets`. This approach ensures that all available funds, minus the transaction fees, are sent to the specified recipient address.
 
 Example:
 ```typescript
-import { sendMaxFunds } from '@bitcoinerlab/coinselect';
+import { coinselect } from '@bitcoinerlab/coinselect';
 
-const { utxos, targets, fee, vsize } = sendMaxFunds({
+const { utxos, targets, fee, vsize } = coinselect({
   utxos: [
     {
       output: new Output({ descriptor: 'addr(bc1qzne9qykh9j55qt8ccqamusp099spdfr49tje60)' }),
@@ -170,7 +176,7 @@ const { utxos, targets, fee, vsize } = sendMaxFunds({
 });
 ```
 
-To calculate the recipient value in the transaction, use: `recipientValue = utxos.reduce((a, u) => a + u.value, 0) - fee`.
+The final recipient value in the transaction will be: `targets[0].value`.
 
 ### Avoid Change
 

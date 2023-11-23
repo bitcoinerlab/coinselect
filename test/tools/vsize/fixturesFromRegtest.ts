@@ -15,7 +15,7 @@ import * as secp256k1 from '@bitcoinerlab/secp256k1';
 const { Output } = DescriptorsFactory(secp256k1);
 
 const regtestUtils = new RegtestUtils();
-import type { InputOrigin } from '../../../dist';
+type InputOrigin = { txHex: string; vout: number };
 
 const INPUT_VALUE = 10000;
 const FEE_PER_OUTPUT = 10;
