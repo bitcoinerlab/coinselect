@@ -92,11 +92,13 @@ This code produces the following result:
 }
 ```
 
+**Note on No Solutions:** If `coinselect` and similar algorithms in this library can't find a feasible combination of UTXOs for the specified targets, they return `undefined`. This means the transaction isn't viable with the given inputs and constraints. Ensure to handle such cases in your code, perhaps by informing the user or modifying the input parameters.
+
 Additionally, if you only need to compute the `vsize` for a specific set of inputs and outputs, you can use the following approach:
 
 ```typescript
 import { vsize } from '@bitcoinerlab/coinselect';
-const vsize = vsize(
+const numBytes = vsize(
   [
     new Output({ descriptor: 'addr(bc1qzne9qykh9j55qt8ccqamusp099spdfr49tje60)' }),
     new Output({ descriptor: 'addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)' })
@@ -134,10 +136,10 @@ After signing, the final `vsize` might be lower than the initial estimate provid
 
 This library adheres to [Immutability principles](https://en.wikipedia.org/wiki/Immutable_object) for smoother integration with Reactive UI frameworks.
 
-- Returned `utxos` and `targets` retain their original references unless they are modified (e.g., removal of utxos or addition of targets).
+- Returned `utxos` and `targets` retain their original references unless they are modified (e.g., removal of utxos or addition of change in targets).
 - To detect if a change address has been added, compare `inputTargets` with `outputTargets`. Similarly, to check if all UTXOs were selected, compare `inputUtxos` with `outputUtxos`.
 - If `inputTargets` differs from `outputTargets`, it indicates that change was added to the `remainder`. Change is always appended at the end of the `targets` array.
-- To identify discarded UTXOs (when `inputUtxos` ≠ `outputUtxos`), use: `const nonSelectedUtxos = inputUtxos.filter(utxo => !outputUtxos.includes(utxo))`.
+- To identify discarded UTXOs (when `inputUtxos` ≠ `outputUtxos`), use: `nonSelectedUtxos = inputUtxos.filter(utxo => !outputUtxos.includes(utxo))`.
 
 ## Algorithms
 
@@ -145,23 +147,53 @@ The UTXO selection algorithms in this library draw inspiration from [bitcoinjs/c
 
 We extend our gratitude and acknowledge the significant contributions of the bitcoinjs-lib team. Their algorithms have been instrumental in numerous wallets and projects for almost a decade.
 
-### Default Algorithm
-TODO
+### Default Algorithm
+
+The default algorithm in `coinselect` sorts UTXOs by descending transferred value (UTXO value minus the fees required to spend the UTXO). It initially attempts to find a solution using the `avoidChange` algorithm, which aims to select UTXOs such that no change is required. If this is not possible, it then applies the `addUntilReach` algorithm, which adds UTXOs until the total value exceeds the target value plus fees. Change is added only if it's above the dust threshold.
 
 ### Sending Max Funds
-TODO
+
+This algorithm is designed for scenarios where you want to transfer all funds from your UTXOs to a recipient address. Specify the recipient in the `remainder` argument and omit the `targets`. 
+
+Example:
+```typescript
+import { sendMaxFunds } from '@bitcoinerlab/coinselect';
+
+const { utxos, targets, fee, vsize } = sendMaxFunds({
+  utxos: [
+    {
+      output: new Output({ descriptor: 'addr(bc1qzne9qykh9j55qt8ccqamusp099spdfr49tje60)' }),
+      value: 2000
+    },
+    {
+      output: new Output({ descriptor: 'addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)' }),
+      value: 4000
+    }
+  ],
+  remainder: new Output({ descriptor: 'addr(bc1qwfh5mj2kms4rrf8amr66f7d5ckmpdqdzlpr082)' }),
+  feeRate: 1.34
+});
+```
+
+To calculate the recipient value in the transaction, use: `recipientValue = utxos.reduce((a, u) => a + u.value, 0) - fee`.
 
 ### Avoid Change
-TODO
+
+The `avoidChange` function seeks a selection of UTXOs that does not necessitate change. Though the function signature is the same as the standard `coinselect` (requiring a `remainder`), change is never created. The `remainder` is used to assess whether hypothetical change would be considered dust and hence not viable.
+
+This function does not reorder UTXOs prior to selection.
 
 ### Add Until Reach
-TODO
+
+Similar to `coinselect`, the `addUntilReach` algorithm continuously adds UTXOs until the combined value surpasses the targets plus fees. This function does not reorder UTXOs before selection. It assesses whether creating change is feasible, taking into account if the change exceeds the dust threshold.
 
 ### Differences Relative to bitcoinjs/coinselect
 
+The algorithms in this library are inspired by `bitcoinjs/coinselect`. The default algorithm corresponds to the main `coinselect` algorithm from bitcoinjs. Similarly, `avoidChange` is adapted from bitcoinjs's `blackjack`, and `addUntilReach` is based on their `accumulative` algorithm.
+
 Despite the similarities, there are notable differences from bitcoinjs/coinselect:
 
-- Like bitcoinjs, this library avoids creating change if its value falls below a certain threshold. Here, the threshold is known as `dustThreshold` (detailed in the previous section), in line with Bitcoin Core's implementation. In contrast, bitcoinjs/coinselect uses a threshold that correlates with the specified `feeRate`.
+- Like bitcoinjs, this library avoids creating change if its value falls below a certain threshold. Here, the threshold is known as `dustThreshold` (detailed in previous sections), in line with Bitcoin Core's implementation. In contrast, bitcoinjs/coinselect uses a threshold that correlates with the specified `feeRate`.
 - This library throws an error if a target value is below the `dustThreshold`.
 - It utilizes descriptors to define input and output script types, as opposed to the assumption of P2PKH in bitcoinjs-lib. [Support for Segwit is also possible in bitcoinjs-lib](https://github.com/BlueWallet/BlueWallet/blob/8834f70ee655df09dfa9bc13adae74775f3baead/class/wallets/abstract-hd-electrum-wallet.ts#L1126).
 - Decimal `feeRate` values are supported.
