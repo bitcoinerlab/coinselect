@@ -18,8 +18,7 @@ import { isDust } from '../dust';
  * Notes:
  *
  * - This function does not reorder UTXOs prior to selection.
- * - UTXOs that lack sufficient value to cover the necessary spending
- * fees are automatically excluded from the selection process.
+ * - UTXOs that do not provide enough value to cover their respective fee contributions are automatically excluded.
  *
  * Refer to {@link coinselect coinselect} for additional details on input parameters and expected returned values.
  */
