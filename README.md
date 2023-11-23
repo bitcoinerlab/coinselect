@@ -174,7 +174,7 @@ To calculate the recipient value in the transaction, use: `recipientValue = utxo
 
 ### Avoid Change
 
-The `avoidChange` function seeks a selection of UTXOs that does not necessitate change. Though the function signature is the same as the standard `coinselect` (requiring a `remainder`), change is never created. The `remainder` is used to assess whether hypothetical change would be considered dust and hence not viable.
+The `avoidChange` function seeks a selection of UTXOs that does not necessitate change. Though the function signature is the same as the standard `coinselect` (requiring a `remainder`), change is never created. The `remainder` is used to assess whether hypothetical change would NOT be considered dust and hence a solution is not viable.
 
 This function does not reorder UTXOs prior to selection.
 
