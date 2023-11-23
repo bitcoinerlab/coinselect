@@ -7,9 +7,11 @@ export const DUST_RELAY_FEE_RATE = 3;
 export const MAX_FEE_RATE = 10000;
 
 import type { OutputInstance } from '@bitcoinerlab/descriptors';
-export { vsize, inputWeight, outputWeight } from './vsize';
-export { dustThreshold } from './dust';
+
 export { coinselect } from './coinselect';
+export { vsize } from './vsize';
+export { dustThreshold } from './dust';
+export { inputWeight, outputWeight } from './vsize';
 export { maxFunds } from './algos/maxFunds';
 export { addUntilReach } from './algos/addUntilReach';
 export { avoidChange } from './algos/avoidChange';

@@ -10,10 +10,14 @@ import { vsize } from '../vsize';
 import { isDust } from '../dust';
 
 /**
- * Continuously incorporate inputs until the target value is met or exceeded,
- * or until inputs are exhausted.
+ * The `addUntilReach` algorithm is similar to the default {@link coinselect coinselect}.
+ * It continuously adds UTXOs until the combined value surpasses the sum of the targets and fees.
+ * This function does not reorder UTXOs before selection. It evaluates whether creating change
+ * is feasible, with consideration of whether the change exceeds the dust threshold.
  *
- * utxos passed must be ordered in descending (value - fee contribution)
+ * Note: The UTXOs passed to this function are not pre-ordered.
+ *
+ * Refer to {@link coinselect coinselect} for additional details on input parameters and expected returned values.
  */
 export function addUntilReach({
   utxos,

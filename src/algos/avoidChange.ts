@@ -10,13 +10,15 @@ import { vsize } from '../vsize';
 import { isDust } from '../dust';
 
 /**
- * Include inputs only when they do not exceed the target value.
- * In other words, achieve an exact match.
+ * Seeks a selection of UTXOs that does not necessitate the creation of change.
+ * Although the function signature matches that of the standard {@link coinselect coinselect},
+ * requiring a `remainder`, change is never generated. The `remainder` is used
+ * to assess if hypothetical change would NOT be considered dust, thereby rendering
+ * the solution unviable.
  *
- * utxos passed must be ordered in descending (value - fee contribution)
+ * This function does not reorder UTXOs prior to selection.
  *
- * Note that remainder is never used to create a target; however it is used
- * to compute dust: Would this algo add change if it were possible?
+ * Refer to {@link coinselect coinselect} for additional details on input parameters and expected returned values.
  */
 export function avoidChange({
   utxos,

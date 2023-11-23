@@ -1,15 +1,5 @@
-//TODO: test throw because isDust one target, test throw if no inputs or no outputs
-//TODO: Document: isDust is always applied. outputs will be checked agains it and
-//it will prevent creating them if they are dusty
 //TODO: Document: Only consider inputs with more value than the fee they require
-//TODO: Document isDust - export it. Tell users how to check if an output is dusty.
-//  -> Will throw if passing empty inputs, empty outputs (or dusty)
-//  -> Change may or may not be added depending on dust
-//TODO: document differenfces wrt bitcoinjs/coinselect
-//  dustRelayFeeRate, no inputs throws, no outputs throws on algos, it passes on coinselect for
-//  sendMaxFunds. Create an algo sendMaxFunds. Must pass tagets = undefined or no pass
-//TODO document: addr(sh) is assumed to be p2shp2wpkh, say so in documentation.
-//  If sh is wanted to be used for generic scripts then use sh(miniscript)
+//TODO: docs: add a reference to the API
 import type { OutputInstance } from '@bitcoinerlab/descriptors';
 import { OutputWithValue, DUST_RELAY_FEE_RATE } from './index';
 import {
@@ -35,6 +25,50 @@ function utxoTransferredValue(
   );
 }
 
+/**
+ * Selects UTXOs for a Bitcoin transaction.
+ *
+ * Sorts UTXOs by their descending net value
+ * (each UTXO's value minus the fees needed to spend it).
+ *
+ * It initially attempts to find a solution using the
+ * {@link avoidChange avoidChange} algorithm,
+ * which aims to select UTXOs such that no change is required. If this is not
+ * possible, it then applies the {@link addUntilReach addUntilReach} algorithm,
+ * which adds UTXOs
+ * until the total value exceeds the target value plus fees.
+ * Change is added only if it's above the {@link dustThreshold dustThreshold}).
+ *
+ * To transfer all funds from your UTXOs to a recipient address, specify the
+ * recipient in the `remainder` argument and omit the `targets`. This way,
+ * the {@link maxFunds maxFunds} algorithm is used.
+ *
+ * *NOTE:* When the descriptor in an input is `addr(address)`, it is assumed
+ * that any `addr(SH_TYPE_ADDRESS)` is in fact a Segwit `SH_WPKH`
+ * (Script Hash-Witness Public Key Hash).
+ * For inputs using arbitrary scripts (not standard addresses),
+ * use a descriptor in the format `sh(MINISCRIPT)`.
+ *
+ * @returns Object with selected UTXOs, targets, fee, and estimated vsize, or
+ *          undefined if no solution is found.
+ *
+ * @example
+ * ```
+ * const { utxos, targets, fee, vsize } = coinselect({
+ *   utxos: [
+ *     { output: new Output({ descriptor: 'addr(...)' }), value: 2000 },
+ *     { output: new Output({ descriptor: 'addr(...)' }), value: 4000 }
+ *   ],
+ *   targets: [
+ *     { output: new Output({ descriptor: 'addr(...)' }), value: 3000 }
+ *   ],
+ *   remainder: new Output({ descriptor: 'addr(...)' }),
+ *   feeRate: 1.34
+ * });
+ * ```
+ *
+ * @see {@link https://bitcoinerlab.com/modules/descriptors} for descriptor info.
+ */
 export function coinselect({
   utxos,
   targets,
@@ -42,10 +76,30 @@ export function coinselect({
   feeRate,
   dustRelayFeeRate = DUST_RELAY_FEE_RATE
 }: {
+  /**
+   * Array of UTXOs for the transaction. Each UTXO includes an `OutputInstance`
+   * and its value.
+   */
   utxos: Array<OutputWithValue>;
+  /**
+   * Array of transaction targets. If specified, `remainder` is used
+   * as the change address.
+   */
   targets?: Array<OutputWithValue>;
+  /**
+   * `OutputInstance` used as the change address when targets are specified,
+   * or as the recipient address for maximum fund transactions.
+   */
   remainder: OutputInstance;
+  /*
+   * Fee rate in satoshis per byte.
+   */
   feeRate: number;
+  /**
+   * Fee rate used to calculate the dust threshold for transaction
+   * outputs. Defaults to standard dust relay fee rate if not specified.
+   * @defaultValue 3
+   */
   dustRelayFeeRate?: number;
 }) {
   validateOutputWithValues(utxos);

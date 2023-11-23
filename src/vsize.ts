@@ -41,21 +41,32 @@ function signatureSize(signature?: PartialSig) {
 }
 
 /**
- * When the descriptor is addr(address) then we will assume that any
- * addr(SH_TYPE_ADDRESS) is in fact SH_WPKH.
- * If you plan to use sh(ARBITRARY SCRIPT), then you must use a descriptor
- * of this type: sh(MINISCRIPT)
+ * Computes the Weight Unit contributions of an input.
+ *
+ * *NOTE:* When the descriptor in an input is `addr(address)`, it is assumed
+ * that any `addr(SH_TYPE_ADDRESS)` is in fact a Segwit `SH_WPKH`
+ * (Script Hash-Witness Public Key Hash).
+ * For inputs using arbitrary scripts (not standard addresses),
+ * use a descriptor in the format `sh(MINISCRIPT)`.
  */
 export function inputWeight(
   input: OutputInstance,
   /**
-   *  If a transaction isSegwitTx, a single byte is then also required for
-   *  non-witness inputs to encode the length of the empty witness stack:
-   *  encodeLength(0) + 0 = 1
-   *  Read more:
+   * Indicates if the transaction is a Segwit transaction.
+   * If a transaction isSegwitTx, a single byte is then also required for
+   * non-witness inputs to encode the length of the empty witness stack:
+   * encodeLength(0) + 0 = 1
+   * Read more:
    * https://gist.github.com/junderw/b43af3253ea5865ed52cb51c200ac19c?permalink_comment_id=4760512#gistcomment-4760512
    */
   isSegwitTx: boolean,
+  /*
+   *  Optional array of `PartialSig`. Each `PartialSig` includes
+   *  a public key and its corresponding signature. This parameter
+   *  enables the accurate calculation of signature sizes. If omitted,
+   *  signatures are assumed to be 72 bytes in length.
+   *  Mainly used for testing.
+   */
   signatures?: Array<PartialSig>
 ) {
   if (isSegwit(input) && !isSegwitTx)
@@ -162,6 +173,9 @@ export function inputWeight(
   }
 }
 
+/**
+ * Computes the Weight Unit contributions of an output.
+ */
 export function outputWeight(output: OutputInstance) {
   const errorMsg =
     'Output type not implemented. Currently supported: pkh(KEY), wpkh(KEY), \
@@ -191,18 +205,48 @@ export function outputWeight(output: OutputInstance) {
 }
 
 /**
- * When the descriptor in an input is is addr(address) then we will assume that
- * any addr(SH_TYPE_ADDRESS) is in fact SH_WPKH.
- * If you plan to use sh(ARBITRARY SCRIPT), then you must use a descriptor
- * of this type: sh(MINISCRIPT)
+ * Computes the virtual size (vsize) of a Bitcoin transaction based on specified
+ * inputs and outputs.
+ *
+ * @returns The computed virtual size (vsize) of the transaction, rounded up to
+ * the nearest integer.
+ *
+ * *NOTE:* When the descriptor in an input is `addr(address)`, it is assumed
+ * that any `addr(SH_TYPE_ADDRESS)` is in fact a Segwit `SH_WPKH`
+ * (Script Hash-Witness Public Key Hash).
+ * For inputs using arbitrary scripts (not standard addresses),
+ * use a descriptor in the format `sh(MINISCRIPT)`.
+ *
+ * @example
+ * ```
+ * const vsizeValue = vsize(
+ *   [new Output({ descriptor: 'addr(...)' })], // inputs
+ *   [new Output({ descriptor: 'addr(...)' })]  // outputs
+ * );
+ * ```
+ *
+ * @see {@link https://bitcoinerlab.com/modules/descriptors} for details on
+ * OutputInstance and descriptors.
  */
 export function vsize(
+  /**
+   * Array of `OutputInstance` representing the inputs of the transaction.
+   */
   inputs: Array<OutputInstance>,
+
+  /**
+   * Array of `OutputInstance` representing the outputs of the transaction.
+   */
   outputs: Array<OutputInstance>,
-  /** For testing purposes only. It can be used to obtain the exact
-   * size of the signatures.
-   * If not passed, then signatures are assumed to be 72 bytes length:
-   * https://transactionfee.info/charts/bitcoin-script-ecdsa-length/
+
+  /**
+   * Optional array of arrays containing signatures.
+   * The outer array corresponds to each input in the transaction. The inner array contains
+   * signatures for each public key associated with the respective input.
+   *
+   * If provided, enables calculation of exact signature sizes.
+   * Defaults to assuming 72 bytes per signature.
+   * Mainly used for testing and accurate fee estimation.
    */
   signaturesPerInput?: Array<Array<PartialSig>>
 ) {

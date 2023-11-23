@@ -8,6 +8,15 @@ import {
 import { vsize } from '../vsize';
 import { isDust } from '../dust';
 
+/**
+ * The `maxFunds` algorithm is tailored for scenarios where the goal is to transfer all funds from specified UTXOs to a single recipient output.
+ * To utilize this function, specify the recipient output in the `remainder` argument, while omitting the `targets` parameter.
+ * In this context, the `remainder` serves as the recipient of the funds.
+ *
+ * Note: This function does not reorder UTXOs prior to selection.
+ *
+ * Refer to {@link coinselect coinselect} for additional details on input parameters and expected returned values.
+ */
 export function maxFunds({
   utxos,
   remainder,
@@ -16,7 +25,7 @@ export function maxFunds({
 }: {
   utxos: Array<OutputWithValue>;
   /**
-   * target to send maxFunds
+   * Recipient to send maxFunds
    */
   remainder: OutputInstance;
   feeRate: number;
