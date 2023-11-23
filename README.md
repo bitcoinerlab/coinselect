@@ -5,11 +5,6 @@ Coinselect is a TypeScript library designed for Bitcoin transaction management. 
 
 For an introduction to Bitcoin descriptors, please refer to [@bitcoinerlab/descriptors](https://bitcoinerlab.com/modules/descriptors) if you're unfamiliar with them.
 
-## Important Notice
-**Project Status: In Development**
-
-Please be aware that this project is currently in its initial stages of development. The core functionalities, as described, are under active construction and have not yet been implemented / can change. 
-
 ## Features
 
 - Utilizes Bitcoin Descriptor notation for expressing UTXOs and targets.
