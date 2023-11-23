@@ -232,7 +232,7 @@ The vsize of a transaction involving a Miniscript UTXO depends on the chosen spe
 
 ### Script Translation and Witness Size
 
-The Miniscript above translates into the following Bitcoin witnessScript/lockingScript: `<a> OP_CHECKSIG OP_NOTIF OP_DUP OP_HASH160 <HASH160(b)> OP_EQUALVERIFY OP_CHECKSIG OP_ELSE 10 OP_CHECKSEQUENCEVERIFY OP_ENDIF`.
+The Miniscript above translates into the following Bitcoin witnessScript/lockingScript: `<Key1> OP_CHECKSIG OP_NOTIF OP_DUP OP_HASH160 <HASH160(Key2)> OP_EQUALVERIFY OP_CHECKSIG OP_ELSE 10 OP_CHECKSEQUENCEVERIFY OP_ENDIF`.
 
 To spend using the first branch, the scriptWitness/unlockingScript should be: `<sig(Key1)>` (with the tx `nSequence` set to `10`). For the second branch, the scriptWitness/unlockingScript is: `<sig(Key2)> <Key2> 0`. Note that the input's weight differs depending on the spending path, impacting the overall transaction size.
 
