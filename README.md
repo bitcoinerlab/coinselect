@@ -154,13 +154,15 @@ Note that in the selection process, each UTXO's contribution towards the transac
 
 ### Sending Max Funds
 
-The `maxFunds` algorithm is tailored for situations where the aim is to transfer all funds from available UTXOs to a single recipient address. To utilize this functionality, either directly import and use `maxFunds` or apply `coinselect` by specifying the recipient's address in the `remainder` argument while omitting the `targets`. This approach ensures that all available funds, minus the transaction fees, are sent to the specified recipient address.
+The `maxFunds` algorithm is ideal for transferring all available funds from UTXOs to a specified recipient. To use this algorithm, specify the recipient in the `remainder`. It's also possible to set additional fixed-value targets, if needed.
+
+If the `remainder` value would be below the dust threshold, the function returns `undefined`.
 
 Example:
 ```typescript
-import { coinselect } from '@bitcoinerlab/coinselect';
+import { maxFunds } from '@bitcoinerlab/coinselect';
 
-const { utxos, targets, fee, vsize } = coinselect({
+const { utxos, targets, fee, vsize } = maxFunds({
   utxos: [
     {
       output: new Output({ descriptor: 'addr(bc1qzne9qykh9j55qt8ccqamusp099spdfr49tje60)' }),
@@ -171,12 +173,15 @@ const { utxos, targets, fee, vsize } = coinselect({
       value: 4000
     }
   ],
+  targets: [
+    // Additional fixed-value targets can be included here
+  ],
   remainder: new Output({ descriptor: 'addr(bc1qwfh5mj2kms4rrf8amr66f7d5ckmpdqdzlpr082)' }),
   feeRate: 1.34
 });
 ```
 
-The final recipient value in the transaction will be: `targets[0].value`.
+The value for the recipient (remainder) is determined by subtracting the sum of the values in `targets` and the `fee` from the total value of `utxos`. To access the recipient's value, use `targets[targets.length - 1].value`.
 
 ### Avoid Change
 
