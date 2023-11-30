@@ -8,7 +8,6 @@ import {
 } from './validation';
 import { addUntilReach } from './algos/addUntilReach';
 import { avoidChange } from './algos/avoidChange';
-import { maxFunds } from './algos/maxFunds';
 import { inputWeight } from './vsize';
 import { isSegwitTx } from './segwit';
 
@@ -37,10 +36,6 @@ function utxoTransferredValue(
  * which adds UTXOs
  * until the total value exceeds the target value plus fees.
  * Change is added only if it's above the {@link dustThreshold dustThreshold}).
- *
- * To transfer all funds from your UTXOs to a recipient address, specify the
- * recipient in the `remainder` argument and omit the `targets`. This way,
- * the {@link maxFunds maxFunds} algorithm is used.
  *
  * UTXOs that do not provide enough value to cover their respective fee
  * contributions are automatically excluded.
@@ -87,7 +82,7 @@ export function coinselect({
    * Array of transaction targets. If specified, `remainder` is used
    * as the change address.
    */
-  targets?: Array<OutputWithValue>;
+  targets: Array<OutputWithValue>;
   /**
    * `OutputInstance` used as the change address when targets are specified,
    * or as the recipient address for maximum fund transactions.
@@ -117,34 +112,29 @@ export function coinselect({
   //Note that having one segwit utxo does not mean the final tx will be segwit
   //(because the coinselect algo may end up choosing only non-segwit utxos).
 
-  let coinselected;
-  if (targets) {
-    const isPossiblySegwitTx = isSegwitTx(utxos.map(utxo => utxo.output));
-    //Sort in descending utxoTransferredValue
-    //Using [...utxos] because sort mutates the input
-    const sortedUtxos = [...utxos].sort(
-      (a, b) =>
-        utxoTransferredValue(b, feeRate, isPossiblySegwitTx) -
-        utxoTransferredValue(a, feeRate, isPossiblySegwitTx)
-    );
-    coinselected =
-      avoidChange({
-        utxos: sortedUtxos,
-        targets,
-        remainder,
-        feeRate,
-        dustRelayFeeRate
-      }) ||
-      addUntilReach({
-        utxos: sortedUtxos,
-        targets,
-        remainder,
-        feeRate,
-        dustRelayFeeRate
-      });
-  } else {
-    coinselected = maxFunds({ utxos, remainder, feeRate, dustRelayFeeRate });
-  }
+  const isPossiblySegwitTx = isSegwitTx(utxos.map(utxo => utxo.output));
+  //Sort in descending utxoTransferredValue
+  //Using [...utxos] because sort mutates the input
+  const sortedUtxos = [...utxos].sort(
+    (a, b) =>
+      utxoTransferredValue(b, feeRate, isPossiblySegwitTx) -
+      utxoTransferredValue(a, feeRate, isPossiblySegwitTx)
+  );
+  const coinselected =
+    avoidChange({
+      utxos: sortedUtxos,
+      targets,
+      remainder,
+      feeRate,
+      dustRelayFeeRate
+    }) ||
+    addUntilReach({
+      utxos: sortedUtxos,
+      targets,
+      remainder,
+      feeRate,
+      dustRelayFeeRate
+    });
   if (coinselected) {
     //return the same reference if nothing changed to interact nicely with
     //reactive components

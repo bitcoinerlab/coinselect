@@ -1,4 +1,4 @@
-import { coinselect, addUntilReach } from '../dist';
+import { coinselect, addUntilReach, maxFunds } from '../dist';
 import * as secp256k1 from '@bitcoinerlab/secp256k1';
 import { DescriptorsFactory } from '@bitcoinerlab/descriptors';
 const { Output } = DescriptorsFactory(secp256k1);
@@ -20,18 +20,15 @@ for (const fixturesWithDescription of [
           value: utxo.value,
           output: new Output({ descriptor: utxo.descriptor })
         }));
-        const targets =
-          'targets' in fixture &&
-          Array.isArray(fixture.targets) &&
-          fixture.targets.map(target => ({
-            value: target.value,
-            output: new Output({ descriptor: target.descriptor })
-          }));
+        const targets = fixture.targets.map(target => ({
+          value: target.value,
+          output: new Output({ descriptor: target.descriptor })
+        }));
         const coinselected =
-          setDescription !== 'addUntilReach'
-            ? coinselect({
+          setDescription === 'addUntilReach'
+            ? addUntilReach({
                 utxos,
-                ...(targets ? { targets } : {}),
+                targets,
                 remainder: new Output({ descriptor: fixture.remainder }),
                 feeRate: fixture.feeRate,
                 // This is probably a bad idea, but we're m using tests fixtures
@@ -39,16 +36,27 @@ for (const fixturesWithDescription of [
                 // https://github.com/bitcoinjs/coinselect/issues/86
                 dustRelayFeeRate: fixture.feeRate
               })
-            : addUntilReach({
-                utxos,
-                targets: targets || [],
-                remainder: new Output({ descriptor: fixture.remainder }),
-                feeRate: fixture.feeRate,
-                // This is probably a bad idea, but we're m using tests fixtures
-                // from bitcoinjs/coinselect which operate like this:
-                // https://github.com/bitcoinjs/coinselect/issues/86
-                dustRelayFeeRate: fixture.feeRate
-              });
+            : setDescription === 'maxFunds'
+              ? maxFunds({
+                  utxos,
+                  targets,
+                  remainder: new Output({ descriptor: fixture.remainder }),
+                  feeRate: fixture.feeRate,
+                  // This is probably a bad idea, but we're m using tests fixtures
+                  // from bitcoinjs/coinselect which operate like this:
+                  // https://github.com/bitcoinjs/coinselect/issues/86
+                  dustRelayFeeRate: fixture.feeRate
+                })
+              : coinselect({
+                  utxos,
+                  targets,
+                  remainder: new Output({ descriptor: fixture.remainder }),
+                  feeRate: fixture.feeRate,
+                  // This is probably a bad idea, but we're m using tests fixtures
+                  // from bitcoinjs/coinselect which operate like this:
+                  // https://github.com/bitcoinjs/coinselect/issues/86
+                  dustRelayFeeRate: fixture.feeRate
+                });
         //console.log(
         //  JSON.stringify(
         //    {

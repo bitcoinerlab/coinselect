@@ -22,8 +22,7 @@
         {
           "value": 25120
         }
-      ],
-      "fee": 4880
+      ]
     },
     "utxos": [
       {
@@ -36,6 +35,56 @@
       },
       {
         "value": 10000,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      }
+    ],
+    "targets": []
+  },
+  {
+    "description": "maxFunds 3 utxos, 1 target",
+    "remainder": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)",
+    "feeRate": 10,
+    "expected": {
+      "inputs": [
+        {
+          "i": 0,
+          "value": 10000
+        },
+        {
+          "i": 1,
+          "value": 10000
+        },
+        {
+          "i": 2,
+          "value": 10000
+        }
+      ],
+      "outputs": [
+        {
+          "value": 1000
+        },
+        {
+          "value": 23780
+        }
+      ]
+    },
+    "utxos": [
+      {
+        "value": 10000,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      },
+      {
+        "value": 10000,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      },
+      {
+        "value": 10000,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      }
+    ],
+    "targets": [
+      {
+        "value": 1000,
         "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
       }
     ]
@@ -44,14 +93,13 @@
     "description": "maxFunds, output is dust (no result)",
     "remainder": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)",
     "feeRate": 10,
-    "expected": {
-      "fee": 1920
-    },
+    "expected": {},
     "utxos": [
       {
         "value": 2000,
         "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
       }
-    ]
+    ],
+    "targets": []
   }
 ]
