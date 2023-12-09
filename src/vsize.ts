@@ -10,199 +10,9 @@
 import type { PartialSig } from 'bip174/src/lib/interfaces';
 import type { OutputInstance } from '@bitcoinerlab/descriptors';
 import { encodingLength } from 'varuint-bitcoin';
-import { payments } from 'bitcoinjs-lib';
-import { guessOutput, isSegwit, isSegwitTx } from './segwit';
 
-function varSliceSize(someScript: Buffer): number {
-  const length = someScript.length;
-
-  return encodingLength(length) + length;
-}
-
-function vectorSize(someVector: Buffer[]): number {
-  const length = someVector.length;
-
-  return (
-    encodingLength(length) +
-    someVector.reduce((sum, witness) => {
-      return sum + varSliceSize(witness);
-    }, 0)
-  );
-}
-
-/**
- * This function will typically return 73; since it assumes a signature size of
- * 72 bytes (this is the max size of a DER encoded signature) and it adds 1
- * extra byte for encoding its length
- */
-function signatureSize(signature?: PartialSig) {
-  const length = signature?.signature?.length || 72;
-  return encodingLength(length) + length;
-}
-
-/**
- * Computes the Weight Unit contributions of an input.
- *
- * *NOTE:* When the descriptor in an input is `addr(address)`, it is assumed
- * that any `addr(SH_TYPE_ADDRESS)` is in fact a Segwit `SH_WPKH`
- * (Script Hash-Witness Public Key Hash).
- * For inputs using arbitrary scripts (not standard addresses),
- * use a descriptor in the format `sh(MINISCRIPT)`.
- */
-export function inputWeight(
-  input: OutputInstance,
-  /**
-   * Indicates if the transaction is a Segwit transaction.
-   * If a transaction isSegwitTx, a single byte is then also required for
-   * non-witness inputs to encode the length of the empty witness stack:
-   * encodeLength(0) + 0 = 1
-   * Read more:
-   * https://gist.github.com/junderw/b43af3253ea5865ed52cb51c200ac19c?permalink_comment_id=4760512#gistcomment-4760512
-   */
-  isSegwitTx: boolean,
-  /*
-   *  Optional array of `PartialSig`. Each `PartialSig` includes
-   *  a public key and its corresponding signature. This parameter
-   *  enables the accurate calculation of signature sizes. If omitted,
-   *  signatures are assumed to be 72 bytes in length.
-   *  Mainly used for testing.
-   */
-  signatures?: Array<PartialSig>
-) {
-  if (isSegwit(input) && !isSegwitTx)
-    throw new Error(`a tx is segwit if at least one input is segwit`);
-  const errorMsg =
-    'Input type not implemented. Currently supported: pkh(KEY), wpkh(KEY), \
-    sh(wpkh(KEY)), sh(wsh(MINISCRIPT)), sh(MINISCRIPT), wsh(MINISCRIPT), \
-    addr(PKH_ADDRESS), addr(WPKH_ADDRESS), addr(SH_WPKH_ADDRESS).';
-
-  //expand any miniscript-based descriptor. It not miniscript-based, then it's
-  //an addr() descriptor. For those, we can only guess their type.
-  const expansion = input.expand().expandedExpression;
-  const { isPKH, isWPKH, isSH } = guessOutput(input);
-  if (!expansion && !isPKH && !isWPKH && !isSH) throw new Error(errorMsg);
-
-  if (expansion ? expansion.startsWith('pkh(') : isPKH) {
-    return (
-      // Non-segwit: (txid:32) + (vout:4) + (sequence:4) + (script_len:1) + (sig:73) + (pubkey:34)
-      (32 + 4 + 4 + 1 + signatureSize(signatures?.[0]) + 34) * 4 +
-      //Segwit:
-      (isSegwitTx ? 1 : 0)
-    );
-  } else if (expansion ? expansion.startsWith('wpkh(') : isWPKH) {
-    if (!isSegwitTx) throw new Error('Should be SegwitTx');
-    return (
-      // Non-segwit: (txid:32) + (vout:4) + (sequence:4) + (script_len:1)
-      41 * 4 +
-      // Segwit: (push_count:1) + (sig:73) + (pubkey:34)
-      (1 + signatureSize(signatures?.[0]) + 34)
-    );
-  } else if (expansion ? expansion.startsWith('sh(wpkh(') : isSH) {
-    if (!isSegwitTx) throw new Error('Should be SegwitTx');
-    return (
-      // Non-segwit: (txid:32) + (vout:4) + (sequence:4) + (script_len:1) + (p2wpkh:23)
-      //  -> p2wpkh_script: OP_0 OP_PUSH20 <public_key_hash>
-      //  -> p2wpkh: (script_len:1) + (script:22)
-      64 * 4 +
-      // Segwit: (push_count:1) + (sig:73) + (pubkey:34)
-      (1 + signatureSize(signatures?.[0]) + 34)
-    );
-  } else if (expansion?.startsWith('sh(wsh(')) {
-    if (!isSegwitTx) throw new Error('Should be SegwitTx');
-    const witnessScript = input.getWitnessScript();
-    if (!witnessScript) throw new Error('sh(wsh) must provide witnessScript');
-    const payment = payments.p2sh({
-      redeem: payments.p2wsh({
-        redeem: {
-          input: input.getScriptSatisfaction(
-            signatures || 'DANGEROUSLY_USE_FAKE_SIGNATURES'
-          ),
-          output: witnessScript
-        }
-      })
-    });
-    if (!payment || !payment.input || !payment.witness)
-      throw new Error('Could not create payment');
-    return (
-      //Non-segwit
-      4 * (40 + varSliceSize(payment.input)) +
-      //Segwit
-      vectorSize(payment.witness)
-    );
-  } else if (expansion?.startsWith('sh(')) {
-    const redeemScript = input.getRedeemScript();
-    if (!redeemScript) throw new Error('sh() must provide redeemScript');
-    const payment = payments.p2sh({
-      redeem: {
-        input: input.getScriptSatisfaction(
-          signatures || 'DANGEROUSLY_USE_FAKE_SIGNATURES'
-        ),
-        output: redeemScript
-      }
-    });
-    if (!payment || !payment.input) throw new Error('Could not create payment');
-    if (payment.witness?.length)
-      throw new Error('A legacy p2sh payment should not cointain a witness');
-    return (
-      //Non-segwit
-      4 * (40 + varSliceSize(payment.input)) +
-      //Segwit:
-      (isSegwitTx ? 1 : 0)
-    );
-  } else if (expansion?.startsWith('wsh(')) {
-    const witnessScript = input.getWitnessScript();
-    if (!witnessScript) throw new Error('wsh must provide witnessScript');
-    const payment = payments.p2wsh({
-      redeem: {
-        input: input.getScriptSatisfaction(
-          signatures || 'DANGEROUSLY_USE_FAKE_SIGNATURES'
-        ),
-        output: witnessScript
-      }
-    });
-    if (!payment || !payment.input || !payment.witness)
-      throw new Error('Could not create payment');
-    return (
-      //Non-segwit
-      4 * (40 + varSliceSize(payment.input)) +
-      //Segwit
-      vectorSize(payment.witness)
-    );
-  } else {
-    throw new Error(errorMsg);
-  }
-}
-
-/**
- * Computes the Weight Unit contributions of an output.
- */
-export function outputWeight(output: OutputInstance) {
-  const errorMsg =
-    'Output type not implemented. Currently supported: pkh(KEY), wpkh(KEY), \
-    sh(ANYTHING), wsh(ANYTHING), addr(PKH_ADDRESS), addr(WPKH_ADDRESS), \
-    addr(SH_WPKH_ADDRESS)';
-
-  //expand any miniscript-based descriptor. It not miniscript-based, then it's
-  //an addr() descriptor. For those, we can only guess their type.
-  const expansion = output.expand().expandedExpression;
-  const { isPKH, isWPKH, isSH } = guessOutput(output);
-  if (!expansion && !isPKH && !isWPKH && !isSH) throw new Error(errorMsg);
-  if (expansion ? expansion.startsWith('pkh(') : isPKH) {
-    // (p2pkh:26) + (amount:8)
-    return 34 * 4;
-  } else if (expansion ? expansion.startsWith('wpkh(') : isWPKH) {
-    // (p2wpkh:23) + (amount:8)
-    return 31 * 4;
-  } else if (expansion ? expansion.startsWith('sh(') : isSH) {
-    // (p2sh:24) + (amount:8)
-    return 32 * 4;
-  } else if (expansion?.startsWith('wsh(')) {
-    // (p2wsh:35) + (amount:8)
-    return 43 * 4;
-  } else {
-    throw new Error(errorMsg);
-  }
-}
+export const isSegwitTx = (inputs: Array<OutputInstance>) =>
+  inputs.some(input => input.isSegwit());
 
 /**
  * Computes the virtual size (vsize) of a Bitcoin transaction based on specified
@@ -254,16 +64,19 @@ export function vsize(
 
   let totalWeight = 0;
   inputs.forEach(function (input, index) {
-    if (signaturesPerInput)
-      totalWeight += inputWeight(
-        input,
+    if (signaturesPerInput) {
+      const signatures = signaturesPerInput[index];
+      if (!signatures)
+        throw new Error(`signaturesPerInput not defined for ${index}`);
+      totalWeight += input.inputWeight(isSegwitTxValue, signatures);
+    } else
+      totalWeight += input.inputWeight(
         isSegwitTxValue,
-        signaturesPerInput[index]
+        'DANGEROUSLY_USE_FAKE_SIGNATURES'
       );
-    else totalWeight += inputWeight(input, isSegwitTxValue);
   });
   outputs.forEach(function (output) {
-    totalWeight += outputWeight(output);
+    totalWeight += output.outputWeight();
   });
 
   if (isSegwitTxValue) totalWeight += 2;

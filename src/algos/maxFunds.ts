@@ -3,6 +3,7 @@ import { DUST_RELAY_FEE_RATE, OutputWithValue } from '../index';
 import {
   validateFeeRate,
   validateOutputWithValues,
+  validateDust,
   validatedFeeAndVsize
 } from '../validation';
 import { vsize } from '../vsize';
@@ -38,7 +39,8 @@ export function maxFunds({
   dustRelayFeeRate?: number;
 }) {
   validateOutputWithValues(utxos);
-  targets.length === 0 || validateOutputWithValues(targets);
+  if (targets.length) validateOutputWithValues(targets);
+  validateDust(targets);
   validateFeeRate(feeRate);
   validateFeeRate(dustRelayFeeRate);
 

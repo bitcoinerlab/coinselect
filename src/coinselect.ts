@@ -8,8 +8,7 @@ import {
 } from './validation';
 import { addUntilReach } from './algos/addUntilReach';
 import { avoidChange } from './algos/avoidChange';
-import { inputWeight } from './vsize';
-import { isSegwitTx } from './segwit';
+import { isSegwitTx } from './vsize';
 
 // order by descending value, minus the inputs approximate fee
 function utxoTransferredValue(
@@ -19,7 +18,12 @@ function utxoTransferredValue(
 ) {
   return (
     outputAndValue.value -
-    (feeRate * inputWeight(outputAndValue.output, isSegwitTx)) / 4
+    (feeRate *
+      outputAndValue.output.inputWeight(
+        isSegwitTx,
+        'DANGEROUSLY_USE_FAKE_SIGNATURES'
+      )) /
+      4
   );
 }
 

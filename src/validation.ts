@@ -39,9 +39,13 @@ export function validatedFeeAndVsize(
     targets.map(t => t.output)
   );
   const finalFeeRate = fee / vsizeResult;
-  if (finalFeeRate < feeRate)
+  // Don't compare fee rates because values are picked based on comparing fees (multiplications)
+  // Don't mix * / operators:
+  // F.ex.: 100/27 !== 100*(1/27)
+  // Instead, compare final fee
+  if (fee < Math.ceil(vsizeResult * feeRate))
     throw new Error(
-      `Final fee rate ${finalFeeRate} lower than required ${feeRate}`
+      `Final fee ${fee} lower than required ${Math.ceil(vsizeResult * feeRate)}`
     );
   validateFeeRate(finalFeeRate);
   return { fee, vsize: vsizeResult };

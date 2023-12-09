@@ -11,7 +11,6 @@ import type { OutputInstance } from '@bitcoinerlab/descriptors';
 export { coinselect } from './coinselect';
 export { vsize } from './vsize';
 export { dustThreshold } from './dust';
-export { inputWeight, outputWeight } from './vsize';
 export { maxFunds } from './algos/maxFunds';
 export { addUntilReach } from './algos/addUntilReach';
 export { avoidChange } from './algos/avoidChange';

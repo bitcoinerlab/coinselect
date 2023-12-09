@@ -1,61 +1,13 @@
 // Copyright (c) 2023 Jose-Luis Landabaso - https://bitcoinerlab.com
 // Distributed under the MIT software license
 
-import { networks, Psbt, payments } from 'bitcoinjs-lib';
-import { DescriptorsFactory, OutputInstance } from '@bitcoinerlab/descriptors';
+import { networks, Psbt } from 'bitcoinjs-lib';
+import { DescriptorsFactory } from '@bitcoinerlab/descriptors';
 import fixturesVsize from './fixtures/vsize.json';
 import * as secp256k1 from '@bitcoinerlab/secp256k1';
 const { Output } = DescriptorsFactory(secp256k1);
 
 import { vsize } from '../dist';
-
-function guessOutput(output: OutputInstance) {
-  function guessSH(output: Buffer) {
-    try {
-      payments.p2sh({ output });
-      return true;
-    } catch (err) {
-      return false;
-    }
-  }
-  function guessWPKH(output: Buffer) {
-    try {
-      payments.p2wpkh({ output });
-      return true;
-    } catch (err) {
-      return false;
-    }
-  }
-  function guessPKH(output: Buffer) {
-    try {
-      payments.p2pkh({ output });
-      return true;
-    } catch (err) {
-      return false;
-    }
-  }
-  const isPKH = guessPKH(output.getScriptPubKey());
-  const isWPKH = guessWPKH(output.getScriptPubKey());
-  const isSH = guessSH(output.getScriptPubKey());
-
-  if ([isPKH, isWPKH, isSH].filter(Boolean).length > 1)
-    throw new Error('Cannot have multiple output types.');
-
-  return { isPKH, isWPKH, isSH };
-}
-
-/**
- * It assumes that an addr(SH_ADDRESS) is always a add(SH_WPKH) address
- */
-function isSegwit(output: OutputInstance) {
-  const isSegwit = output.isSegwit();
-  const expansion = output.expand().expandedExpression;
-  const { isPKH, isWPKH, isSH } = guessOutput(output);
-  if (!expansion && !isPKH && !isWPKH && !isSH)
-    throw new Error('Incompatible expansion and output');
-  //we will assume that any addr(SH_TYPE_ADDRESS) is in fact SH_WPKH.
-  return isSegwit !== undefined ? isSegwit : isWPKH || (isSH && !expansion);
-}
 
 const network = networks.regtest;
 
@@ -137,7 +89,7 @@ describe('vsize', () => {
         //larger txs. Discount it to test for the upper limt:
         const upperLimit = inputs.reduce((accumulator, input, index) => {
           const signaturesCount = signaturesPerInput[index]!.length;
-          return accumulator + signaturesCount * (isSegwit(input) ? 0.25 : 1);
+          return accumulator + signaturesCount * (input.isSegwit() ? 0.25 : 1);
         }, 0);
 
         expect(bestGuessTxSize).toBeLessThanOrEqual(
