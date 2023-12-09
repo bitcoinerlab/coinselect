@@ -1,6 +1,4 @@
 import type { OutputInstance } from '@bitcoinerlab/descriptors';
-import { inputWeight, outputWeight } from './vsize';
-import { isSegwit } from './segwit';
 import { DUST_RELAY_FEE_RATE } from './index';
 
 /**
@@ -52,11 +50,17 @@ export function dustThreshold(
    */
   dustRelayFeeRate: number = DUST_RELAY_FEE_RATE
 ) {
-  const isSegwitOutput = isSegwit(output);
+  const isSegwitOutput = output.isSegwit();
+  if (isSegwitOutput === undefined) throw new Error(`Unknown output type`);
   return Math.ceil(
     dustRelayFeeRate *
       Math.ceil(
-        (outputWeight(output) + inputWeight(output, isSegwitOutput)) / 4
+        (output.outputWeight() +
+          output.inputWeight(
+            isSegwitOutput,
+            'DANGEROUSLY_USE_FAKE_SIGNATURES'
+          )) /
+          4
       )
   );
 }
