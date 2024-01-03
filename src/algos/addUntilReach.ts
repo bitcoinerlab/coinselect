@@ -1,5 +1,5 @@
 import type { OutputInstance } from '@bitcoinerlab/descriptors';
-import { DUST_RELAY_FEE_RATE, OutputWithValue } from '../index';
+import { DUST_RELAY_FEE_RATE, Input, OutputWithValue } from '../index';
 import {
   validateFeeRate,
   validateOutputWithValues,
@@ -29,7 +29,7 @@ export function addUntilReach({
   feeRate,
   dustRelayFeeRate = DUST_RELAY_FEE_RATE
 }: {
-  utxos: Array<OutputWithValue>;
+  utxos: Array<Input>;
   targets: Array<OutputWithValue>;
   remainder: OutputInstance;
   feeRate: number;
@@ -42,9 +42,32 @@ export function addUntilReach({
   validateFeeRate(dustRelayFeeRate);
 
   const targetsValue = targets.reduce((a, target) => a + target.value, 0);
-  const utxosSoFar: Array<OutputWithValue> = [];
+  const utxosSoFar = utxos.filter(utxo => utxo.forceSelection);
 
-  for (const candidate of utxos) {
+  // First check if the force included utxos are enough
+  if (utxosSoFar.length > 0) {
+    const utxosValue = utxosSoFar.reduce((a, utxo) => a + utxo.value, 0);
+    const txSize = vsize(
+      utxosSoFar.map(utxo => utxo.output),
+      [remainder, ...targets.map(target => target.output)]
+    );
+    const txFee = Math.ceil(txSize * feeRate);
+    const remainderValue = utxosValue - (targetsValue + txFee);
+    const targetsResult = isDust(remainder, remainderValue, dustRelayFeeRate)
+      ? targets
+      : [...targets, { output: remainder, value: remainderValue }];
+
+    if (utxosValue >= targetsValue + txFee) {
+      return {
+        utxos: utxosSoFar,
+        targets: targetsResult,
+        ...validatedFeeAndVsize(utxosSoFar, targetsResult, feeRate)
+      };
+    }
+  }
+
+  const notforceSelectiondUtxos = utxos.filter(utxo => !utxo.forceSelection);
+  for (const candidate of notforceSelectiondUtxos) {
     const txSizeSoFar = vsize(
       utxosSoFar.map(utxo => utxo.output),
       targets.map(target => target.output)
