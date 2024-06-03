@@ -7,7 +7,8 @@ export function validateOutputWithValues(
   if (outputAndValues.length === 0) throw new Error('Empty group');
   for (const outputAndValue of outputAndValues) {
     const value = outputAndValue.value;
-    if (!Number.isInteger(value) || value <= 0 || value > 1e14 /*1 M Btc*/) {
+    //note an utxo with value === 0 is possible, see https://blockstream.info/testnet/tx/a063dbdc23cf969df020536f75c431167a2bbf29d6215a2067495ac46991c954
+    if (!Number.isInteger(value) || value < 0 || value > 1e14 /*1 M Btc*/) {
       throw new Error(`Input value ${value} not supported`);
     }
   }
