@@ -1,4 +1,4 @@
-import { coinselect, addUntilReach, maxFunds } from '../dist';
+import { coinselect, addUntilReach, maxFunds, Input } from '../dist';
 import * as secp256k1 from '@bitcoinerlab/secp256k1';
 import { DescriptorsFactory } from '@bitcoinerlab/descriptors';
 const { Output } = DescriptorsFactory(secp256k1);
@@ -16,9 +16,10 @@ for (const fixturesWithDescription of [
   describe(setDescription, () => {
     for (const fixture of fixtures) {
       test(fixture.description, () => {
-        const utxos = fixture.utxos.map(utxo => ({
+        const utxos: Input[] = fixture.utxos.map(utxo => ({
           value: utxo.value,
-          output: new Output({ descriptor: utxo.descriptor })
+          output: new Output({ descriptor: utxo.descriptor }),
+          forceSelection: 'forceSelection' in utxo ? utxo.forceSelection : false
         }));
         const targets = fixture.targets.map(target => ({
           value: target.value,
@@ -71,9 +72,28 @@ for (const fixturesWithDescription of [
         //    2
         //  )
         //);
+
+        // Check if the selected UTXOs match the expected indices
+        if (coinselected && fixture.expected.inputs) {
+          const selectedUtxoIndices = coinselected.utxos.map(selectedUtxo => {
+            const index = utxos.indexOf(selectedUtxo);
+            if (index === -1) {
+              throw new Error('Selected UTXO not found in original list');
+            }
+            return index;
+          });
+
+          const expectedIndices = fixture.expected.inputs.map(input => input.i);
+
+          expect(selectedUtxoIndices.sort()).toEqual(expectedIndices.sort());
+        }
+
+        // Check the number of targets
         expect(coinselected ? coinselected.targets.length : 0).toBe(
           fixture.expected?.outputs?.length || 0
         );
+
+        // Check the remainder value
         let expectedRemainderValue: number | undefined;
         if (
           fixture.expected.outputs &&
@@ -90,20 +110,6 @@ for (const fixturesWithDescription of [
           expect(
             coinselected.targets[coinselected.targets.length - 1]!.value
           ).toBe(expectedRemainderValue);
-        }
-        // Check if the selected UTXOs match the expected indices
-        if (coinselected && fixture.expected.inputs) {
-          const selectedUtxoIndices = coinselected.utxos.map(selectedUtxo => {
-            const index = utxos.indexOf(selectedUtxo);
-            if (index === -1) {
-              throw new Error('Selected UTXO not found in original list');
-            }
-            return index;
-          });
-
-          const expectedIndices = fixture.expected.inputs.map(input => input.i);
-
-          expect(selectedUtxoIndices.sort()).toEqual(expectedIndices.sort());
         }
       });
     }

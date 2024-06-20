@@ -180,6 +180,92 @@
     ]
   },
   {
+    "description": "1 output, forcing utxo, no change",
+    "remainder": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)",
+    "feeRate": 5,
+    "expected": {
+      "inputs": [
+        {
+          "i": 0,
+          "value": 10000
+        }
+      ],
+      "outputs": [
+        {
+          "value": 8400
+        }
+      ]
+    },
+    "utxos": [
+      {
+        "value": 10000,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)",
+        "forceSelection": true
+      },
+      {
+        "value": 40000,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      },
+      {
+        "value": 40000,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      }
+    ],
+    "targets": [
+      {
+        "value": 8400,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      }
+    ]
+  },
+  {
+    "description": "1 output, forcing multiple utxos, change expected",
+    "remainder": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)",
+    "feeRate": 5,
+    "expected": {
+      "inputs": [
+        {
+          "i": 1,
+          "value": 40000
+        },
+        {
+          "i": 2,
+          "value": 40000
+        }
+      ],
+      "outputs": [
+        {
+          "value": 4700
+        },
+        {
+          "value": 73430
+        }
+      ]
+    },
+    "utxos": [
+      {
+        "value": 10000,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      },
+      {
+        "value": 40000,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)",
+        "forceSelection": true
+      },
+      {
+        "value": 40000,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)",
+        "forceSelection": true
+      }
+    ],
+    "targets": [
+      {
+        "value": 4700,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      }
+    ]
+  },
+  {
     "description": "1 output, passes, poor ordering but still good",
     "remainder": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)",
     "feeRate": 5,

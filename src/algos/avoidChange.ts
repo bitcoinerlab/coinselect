@@ -1,5 +1,5 @@
 import type { OutputInstance } from '@bitcoinerlab/descriptors';
-import { DUST_RELAY_FEE_RATE, OutputWithValue } from '../index';
+import { DUST_RELAY_FEE_RATE, Input, OutputWithValue } from '../index';
 import {
   validateFeeRate,
   validateOutputWithValues,
@@ -30,7 +30,7 @@ export function avoidChange({
   feeRate,
   dustRelayFeeRate = DUST_RELAY_FEE_RATE
 }: {
-  utxos: Array<OutputWithValue>;
+  utxos: Array<Input>;
   targets: Array<OutputWithValue>;
   /**
    * This is the hypotetical change that this algo will check it would
@@ -47,9 +47,32 @@ export function avoidChange({
   validateFeeRate(dustRelayFeeRate);
 
   const targetsValue = targets.reduce((a, target) => a + target.value, 0);
-  const utxosSoFar: Array<OutputWithValue> = [];
+  const utxosSoFar = utxos.filter(utxo => utxo.forceSelection);
 
-  for (const candidate of utxos) {
+  // First check if the force included utxos are enough
+  if (utxosSoFar.length > 0) {
+    const utxosValue = utxosSoFar.reduce((a, utxo) => a + utxo.value, 0);
+    const txSize = vsize(
+      utxosSoFar.map(utxo => utxo.output),
+      targets.map(target => target.output)
+    );
+    const txFee = Math.ceil(txSize * feeRate);
+    const remainderValue = utxosValue - (targetsValue + txFee);
+
+    if (
+      utxosValue >= targetsValue + txFee &&
+      isDust(remainder, remainderValue, dustRelayFeeRate)
+    ) {
+      return {
+        utxos: utxosSoFar,
+        targets,
+        ...validatedFeeAndVsize(utxosSoFar, targets, feeRate)
+      };
+    }
+  }
+
+  const notforceSelectiondUtxos = utxos.filter(utxo => !utxo.forceSelection);
+  for (const candidate of notforceSelectiondUtxos) {
     const utxosSoFarValue = utxosSoFar.reduce((a, utxo) => a + utxo.value, 0);
 
     const txSizeWithCandidateAndChange = vsize(
