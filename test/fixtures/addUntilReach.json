@@ -180,6 +180,141 @@
     ]
   },
   {
+    "description": "1 output, forcing bigger utxo, change expected",
+    "remainder": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)",
+    "feeRate": 5,
+    "expected": {
+      "inputs": [
+        {
+          "i": 2,
+          "value": 80000
+        }
+      ],
+      "outputs": [
+        {
+          "value": 4700
+        },
+        {
+          "value": 74170
+        }
+      ]
+    },
+    "utxos": [
+      {
+        "value": 10000,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      },
+      {
+        "value": 40000,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      },
+      {
+        "value": 80000,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)",
+        "forceSelection": true
+      }
+    ],
+    "targets": [
+      {
+        "value": 4700,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      }
+    ]
+  },
+  {
+    "description": "1 output, forcing multiple utxos, change expected",
+    "remainder": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)",
+    "feeRate": 5,
+    "expected": {
+      "inputs": [
+        {
+          "i": 0,
+          "value": 10000
+        },
+        {
+          "i": 2,
+          "value": 80000
+        }
+      ],
+      "outputs": [
+        {
+          "value": 4700
+        },
+        {
+          "value": 83430
+        }
+      ]
+    },
+    "utxos": [
+      {
+        "value": 10000,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)",
+        "forceSelection": true
+      },
+      {
+        "value": 40000,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      },
+      {
+        "value": 80000,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)",
+        "forceSelection": true
+      }
+    ],
+    "targets": [
+      {
+        "value": 4700,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      }
+    ]
+  },
+  {
+    "description": "1 output, forcing small utxo, change expected",
+    "remainder": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)",
+    "feeRate": 5,
+    "expected": {
+      "inputs": [
+        {
+          "i": 0,
+          "value": 2000
+        },
+        {
+          "i": 1,
+          "value": 10000
+        }
+      ],
+      "outputs": [
+        {
+          "value": 4700
+        },
+        {
+          "value": 5430
+        }
+      ]
+    },
+    "utxos": [
+      {
+        "value": 2000,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)",
+        "forceSelection": true
+      },
+      {
+        "value": 10000,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      },
+      {
+        "value": 80000,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      }
+    ],
+    "targets": [
+      {
+        "value": 4700,
+        "descriptor": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)"
+      }
+    ]
+  },
+  {
     "description": "1 output, fails, skips (and finishes on) detrimental input",
     "remainder": "addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)",
     "feeRate": 55,

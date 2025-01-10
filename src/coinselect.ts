@@ -1,11 +1,6 @@
 //TODO: docs: add a reference to the API
 import type { OutputInstance } from '@bitcoinerlab/descriptors';
-import { OutputWithValue, DUST_RELAY_FEE_RATE } from './index';
-import {
-  validateFeeRate,
-  validateOutputWithValues,
-  validateDust
-} from './validation';
+import { OutputWithValue, DUST_RELAY_FEE_RATE, Input } from './index';
 import { addUntilReach } from './algos/addUntilReach';
 import { avoidChange } from './algos/avoidChange';
 import { isSegwitTx } from './vsize';
@@ -81,7 +76,7 @@ export function coinselect({
    * Array of UTXOs for the transaction. Each UTXO includes an `OutputInstance`
    * and its value.
    */
-  utxos: Array<OutputWithValue>;
+  utxos: Array<Input>;
   /**
    * Array of transaction targets. If specified, `remainder` is used
    * as the change address.
@@ -103,14 +98,6 @@ export function coinselect({
    */
   dustRelayFeeRate?: number;
 }) {
-  validateOutputWithValues(utxos);
-  if (targets) {
-    validateOutputWithValues(targets);
-    validateDust(targets);
-  }
-  validateFeeRate(feeRate);
-  validateFeeRate(dustRelayFeeRate);
-
   //We will assume that the tx is segwit if there is at least one segwit
   //utxo for computing the utxo ordering. This is an approximation.
   //Note that having one segwit utxo does not mean the final tx will be segwit
