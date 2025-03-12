@@ -52,16 +52,37 @@ export function dustThreshold(
 ) {
   const isSegwitOutput = output.isSegwit();
   if (isSegwitOutput === undefined) throw new Error(`Unknown output type`);
+  // When sending to scripts (such as TR, SH, or WSH) using an addr() descriptor,
+  // the actual input weight may be unknown because the unlocking script isn’t provided.
+  // In such cases, we fall back to a conservative estimate based on a typical P2WPKH input.
+  // Bitcoin Core Wallet does similar stuff...
+  //
+  // The fallback is derived as follows:
+  // - Non-witness part:
+  //   • txid: 32 bytes
+  //   • vout: 4 bytes
+  //   • sequence: 4 bytes
+  //   • script length: 1 byte
+  //   Total non-witness bytes = 41 bytes → 41 * 4 = 164 weight units.
+  // - Witness part (for P2WPKH):
+  //   • push count: 1 byte
+  //   • signature: 73 bytes
+  //   • public key: 34 bytes
+  //   Total witness bytes = 108 weight units.
+  // Combined total input weight = 164 + 108 = 272 weight units.
+  let inputWeight: number;
+  try {
+    //this may throw. F.ex. if the output is a wsh and the miniscript was
+    //not provided.
+    inputWeight = output.inputWeight(
+      isSegwitOutput,
+      'DANGEROUSLY_USE_FAKE_SIGNATURES'
+    );
+  } catch (err) {
+    inputWeight = 272;
+  }
   return Math.ceil(
-    dustRelayFeeRate *
-      Math.ceil(
-        (output.outputWeight() +
-          output.inputWeight(
-            isSegwitOutput,
-            'DANGEROUSLY_USE_FAKE_SIGNATURES'
-          )) /
-          4
-      )
+    dustRelayFeeRate * Math.ceil((output.outputWeight() + inputWeight) / 4)
   );
 }
 
