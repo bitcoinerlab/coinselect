@@ -80,7 +80,7 @@ describe('vsize', () => {
         // Check if the fixture size using signatures is exactly the
         // same as the signed one:
         if (txSize !== expectedSize)
-          console.error(psbt.extractTransaction().toHex());
+          console.error({ info, txSize, expectedSize, psbt: psbt.toHex() });
         expect(txSize).toBe(expectedSize);
 
         // Check if the best guess fixture size is within the expected range:

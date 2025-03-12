@@ -91,7 +91,7 @@ This code produces the following result:
 
 **Note on No Solutions:** If `coinselect` and similar algorithms in this library can't find a feasible combination of UTXOs for the specified targets, they return `undefined`. This means the transaction isn't viable with the given inputs and constraints. Ensure to handle such cases in your code, perhaps by informing the user or modifying the input parameters.
 
-**Note on `addr()`:** When using `addr(SH_ADDRESS)` descriptors, the library assumes they represent Segwit `SH_WPKH_ADDRESS`. For scripts, use the `sh(MINISCRIPT)` descriptor format.
+**Note on `addr()`:** When using `addr(SH_ADDRESS)` descriptors, the library assumes they represent Segwit `SH_WPKH_ADDRESS`. For scripts, use the `sh(MINISCRIPT)` descriptor format. Similarly, when using `addr(TR_ADDRESS)` descriptors, the library assumes they represent single-key Taproot addresses such as those defined in BIP86, without script paths.
 
 Additionally, if you only need to compute the `vsize` for a specific set of inputs and outputs, you can use the following approach:
 

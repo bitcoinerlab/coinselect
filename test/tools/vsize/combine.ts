@@ -69,6 +69,14 @@ const outputsData: OutputsDataType = {
       keyPath: '/0/0'
     })
   },
+  trSingleKey: {
+    descriptor: scriptExpressions.trBIP32({
+      masterNode,
+      network,
+      account: 0,
+      keyPath: '/0/0'
+    })
+  },
   shWpkh: {
     descriptor: scriptExpressions.shWpkhBIP32({
       masterNode,
@@ -135,6 +143,7 @@ const outputKeys = [
   'pkh',
   'wpkh',
   'shWpkh',
+  'trSingleKey',
   'wshDelayed',
   'shInstant',
   'shWshDelayed'

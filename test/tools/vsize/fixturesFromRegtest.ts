@@ -55,11 +55,32 @@ function createPsbt({
     });
   });
   signers.signBIP32({ psbt, masterNode });
-  const signaturesPerInput = psbt.data.inputs.map(input => {
-    const partialSig = input.partialSig;
-    if (!partialSig) throw new Error('No signatures');
-    return partialSig;
+  //const signaturesPerInput = psbt.data.inputs.map(input => {
+  //  const partialSig = input.partialSig;
+  //  if (!partialSig) throw new Error('No signatures');
+  //  return partialSig;
+  //});
+  const signaturesPerInput = psbt.data.inputs.map((input, index) => {
+    if (input.tapKeySig) {
+      if (input.tapScriptSig && input.tapScriptSig.length > 0)
+        throw new Error(
+          `Script path spending detected in input #${index}. This is not yet supported.`
+        );
+      if (!input.tapInternalKey)
+        throw new Error(`single-key internal key not set`);
+      return [
+        {
+          pubkey: input.tapInternalKey,
+          signature: input.tapKeySig
+        }
+      ];
+    }
+
+    if (input.partialSig) return input.partialSig;
+
+    throw new Error(`No signatures found for input #${index}`);
   });
+
   finalizers.forEach(finalizer => finalizer({ psbt }));
 
   return { signaturesPerInput, psbt };
@@ -122,8 +143,8 @@ const generateFixtures = async () => {
 
     const inputOrigins: Array<InputOrigin> = [];
     for (const input of inputs) {
-      const unspent = await regtestUtils.faucet(
-        input.getAddress(),
+      const unspent = await regtestUtils.faucetComplex(
+        input.getScriptPubKey(),
         INPUT_VALUE
       );
       const { txHex } = await regtestUtils.fetch(unspent.txId);
@@ -189,6 +210,7 @@ const generateFixtures = async () => {
         vsize
       };
     }
+    if (Number(index) % 10 === 0) await regtestUtils.mine(1);
   }
 
   fs.writeFileSync(fixturesPath, JSON.stringify(fixtures, null, 2), 'utf8');

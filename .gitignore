@@ -6,3 +6,4 @@ test/**/*.d.ts
 dist/
 docs/
 webdocs/
+.aider*

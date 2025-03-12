@@ -26,6 +26,7 @@ export const isSegwitTx = (inputs: Array<OutputInstance>) =>
  * (Script Hash-Witness Public Key Hash).
  * For inputs using arbitrary scripts (not standard addresses),
  * use a descriptor in the format `sh(MINISCRIPT)`.
+ * Similarly, add(TR_TYPE_ADDRESS) is assumed to be a single-key tr address.
  *
  * @example
  * ```
