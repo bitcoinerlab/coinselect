@@ -22,14 +22,14 @@ import { isDust } from '../dust';
  *
  * Refer to {@link coinselect coinselect} for additional details on input parameters and expected returned values.
  */
-export function addUntilReach({
+export function addUntilReach<Utxo extends OutputWithValue>({
   utxos,
   targets,
   remainder,
   feeRate,
   dustRelayFeeRate = DUST_RELAY_FEE_RATE
 }: {
-  utxos: Array<OutputWithValue>;
+  utxos: Array<Utxo>;
   targets: Array<OutputWithValue>;
   remainder: OutputInstance;
   feeRate: number;
@@ -42,7 +42,7 @@ export function addUntilReach({
   validateFeeRate(dustRelayFeeRate);
 
   const targetsValue = targets.reduce((a, target) => a + target.value, 0);
-  const utxosSoFar: Array<OutputWithValue> = [];
+  const utxosSoFar: Array<Utxo> = [];
 
   for (const candidate of utxos) {
     const txSizeSoFar = vsize(

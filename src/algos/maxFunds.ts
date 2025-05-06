@@ -22,14 +22,14 @@ import { isDust } from '../dust';
  *
  * Refer to {@link coinselect coinselect} for additional details on input parameters and expected returned values.
  */
-export function maxFunds({
+export function maxFunds<Utxo extends OutputWithValue>({
   utxos,
   targets,
   remainder,
   feeRate,
   dustRelayFeeRate = DUST_RELAY_FEE_RATE
 }: {
-  utxos: Array<OutputWithValue>;
+  utxos: Array<Utxo>;
   targets: Array<OutputWithValue>;
   /**
    * Recipient to send maxFunds

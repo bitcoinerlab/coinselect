@@ -70,7 +70,7 @@ function utxoTransferredValue(
  *
  * @see {@link https://bitcoinerlab.com/modules/descriptors} for descriptor info.
  */
-export function coinselect({
+export function coinselect<Utxo extends OutputWithValue>({
   utxos,
   targets,
   remainder,
@@ -81,7 +81,7 @@ export function coinselect({
    * Array of UTXOs for the transaction. Each UTXO includes an `OutputInstance`
    * and its value.
    */
-  utxos: Array<OutputWithValue>;
+  utxos: Array<Utxo>;
   /**
    * Array of transaction targets. If specified, `remainder` is used
    * as the change address.
