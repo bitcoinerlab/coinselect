@@ -5,6 +5,7 @@
 export const DUST_RELAY_FEE_RATE = 3;
 //10 times larger than 2017 peak
 export const MAX_FEE_RATE = 10000;
+export const MIN_FEE_RATE = 0.1;
 
 import type { OutputInstance } from '@bitcoinerlab/descriptors';
 
