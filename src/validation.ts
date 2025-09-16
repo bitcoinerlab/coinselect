@@ -1,4 +1,9 @@
-import { OutputWithValue, MAX_FEE_RATE, DUST_RELAY_FEE_RATE } from './index';
+import {
+  OutputWithValue,
+  MIN_FEE_RATE,
+  MAX_FEE_RATE,
+  DUST_RELAY_FEE_RATE
+} from './index';
 import { vsize } from './vsize';
 import { isDust } from './dust';
 export function validateOutputWithValues(
@@ -14,7 +19,11 @@ export function validateOutputWithValues(
   }
 }
 export function validateFeeRate(feeRate: number) {
-  if (!Number.isFinite(feeRate) || feeRate < 1 || feeRate > MAX_FEE_RATE) {
+  if (
+    !Number.isFinite(feeRate) ||
+    feeRate < MIN_FEE_RATE ||
+    feeRate > MAX_FEE_RATE
+  ) {
     throw new Error(`Fee rate ${feeRate} not supported`);
   }
 }
