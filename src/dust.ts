@@ -79,6 +79,7 @@ export function dustThreshold(
       'DANGEROUSLY_USE_FAKE_SIGNATURES'
     );
   } catch (err) {
+    void err;
     inputWeight = 272;
   }
   return Math.ceil(

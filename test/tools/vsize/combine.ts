@@ -9,6 +9,7 @@ import {
   scriptExpressions
 } from '@bitcoinerlab/descriptors';
 import { mnemonicToSeedSync } from 'bip39';
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const { encode: olderEncode } = require('bip68');
 import { compilePolicy } from '@bitcoinerlab/miniscript';
 const { BIP32, parseKeyExpression } = DescriptorsFactory(secp256k1);
