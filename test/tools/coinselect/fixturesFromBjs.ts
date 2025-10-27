@@ -68,13 +68,13 @@ interface Output {
   };
 }
 
-const processFixtures = (
+const processFixtures = async (
   inputPath: string,
   outputPath: string,
   descriptor: string
 ) => {
   console.log(`Processing ${inputPath}`);
-  const fixtures = require(inputPath);
+  const fixtures = (await import(inputPath)).default;
 
   const processedFixtures = fixtures
     .map((fixture: Fixture) => {
@@ -227,13 +227,15 @@ const processFixtures = (
 };
 
 // Process both fixtures and write to respective output files
-processFixtures(
-  path.join(__dirname, './coinselectBjs.json'),
-  path.join(__dirname, '../../fixtures/coinselect.json'),
-  'addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)'
-);
-processFixtures(
-  path.join(__dirname, './accumulativeBjs.json'),
-  path.join(__dirname, '../../fixtures/addUntilReach.json'),
-  'addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)'
-);
+(async () => {
+  await processFixtures(
+    path.join(__dirname, './coinselectBjs.json'),
+    path.join(__dirname, '../../fixtures/coinselect.json'),
+    'addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)'
+  );
+  await processFixtures(
+    path.join(__dirname, './accumulativeBjs.json'),
+    path.join(__dirname, '../../fixtures/addUntilReach.json'),
+    'addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)'
+  );
+})();
