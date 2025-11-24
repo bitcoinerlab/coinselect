@@ -23,14 +23,14 @@ import { isDust } from '../dust';
  *
  * Refer to {@link coinselect coinselect} for additional details on input parameters and expected returned values.
  */
-export function avoidChange({
+export function avoidChange<Utxo extends OutputWithValue>({
   utxos,
   targets,
   remainder,
   feeRate,
   dustRelayFeeRate = DUST_RELAY_FEE_RATE
 }: {
-  utxos: Array<OutputWithValue>;
+  utxos: Array<Utxo>;
   targets: Array<OutputWithValue>;
   /**
    * This is the hypotetical change that this algo will check it would
@@ -47,7 +47,7 @@ export function avoidChange({
   validateFeeRate(dustRelayFeeRate);
 
   const targetsValue = targets.reduce((a, target) => a + target.value, 0);
-  const utxosSoFar: Array<OutputWithValue> = [];
+  const utxosSoFar: Array<Utxo> = [];
 
   for (const candidate of utxos) {
     const utxosSoFarValue = utxosSoFar.reduce((a, utxo) => a + utxo.value, 0);
