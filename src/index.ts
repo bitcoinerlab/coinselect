@@ -15,4 +15,4 @@ export { dustThreshold } from './dust';
 export { maxFunds } from './algos/maxFunds';
 export { addUntilReach } from './algos/addUntilReach';
 export { avoidChange } from './algos/avoidChange';
-export type OutputWithValue = { output: OutputInstance; value: number };
+export type OutputWithValue = { output: OutputInstance; value: bigint };

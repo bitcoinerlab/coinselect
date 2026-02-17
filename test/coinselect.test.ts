@@ -17,11 +17,11 @@ for (const fixturesWithDescription of [
     for (const fixture of fixtures) {
       test(fixture.description, () => {
         const utxos = fixture.utxos.map(utxo => ({
-          value: utxo.value,
+          value: BigInt(utxo.value),
           output: new Output({ descriptor: utxo.descriptor })
         }));
         const targets = fixture.targets.map(target => ({
-          value: target.value,
+          value: BigInt(target.value),
           output: new Output({ descriptor: target.descriptor })
         }));
         const coinselected =
@@ -74,7 +74,7 @@ for (const fixturesWithDescription of [
         expect(coinselected ? coinselected.targets.length : 0).toBe(
           fixture.expected?.outputs?.length || 0
         );
-        let expectedRemainderValue: number | undefined;
+        let expectedRemainderValue: bigint | undefined;
         if (
           fixture.expected.outputs &&
           fixture.expected.outputs.length >
@@ -84,7 +84,7 @@ for (const fixturesWithDescription of [
         ) {
           const lastExpectedOutput =
             fixture.expected.outputs[fixture.expected.outputs.length - 1]!;
-          expectedRemainderValue = lastExpectedOutput.value;
+          expectedRemainderValue = BigInt(lastExpectedOutput.value);
         }
         if (expectedRemainderValue !== undefined && coinselected) {
           expect(

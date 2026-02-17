@@ -44,17 +44,17 @@ const { utxos, targets, fee, vsize } = coinselect({
   utxos: [
     {
       output: new Output({ descriptor: 'addr(bc1qzne9qykh9j55qt8ccqamusp099spdfr49tje60)' }),
-      value: 2000
+      value: 2000n
     },
     {
       output: new Output({ descriptor: 'addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)' }),
-      value: 4000
+      value: 4000n
     }
   ],
   targets: [
     {
       output: new Output({ descriptor: 'addr(bc1qxtuy67s0rnz7uq2cyejqx5lj8p25mh0fz2pltm)' }),
-      value: 3000
+      value: 3000n
     }
   ],
   remainder: new Output({ descriptor: 'addr(bc1qwfh5mj2kms4rrf8amr66f7d5ckmpdqdzlpr082)' }),
@@ -69,21 +69,21 @@ This code produces the following result:
   "utxos": [
     {
       "output": {}, // The same OutputInstance as above: utxos[0].output
-      "value": 4000
+      "value": 4000n
     }
   ],
   "targets": [
     {
       "output": {}, // The same OutputInstance as above: targets[0].output
-      "value": 3000
+      "value": 3000n
     },
     {
       "output": {}, // A new OutputInstance corresponding to the change
                     // address passed in remainder
-      "value": 705  // The final change value that you will receive
+      "value": 705n // The final change value that you will receive
     }
   ],
-  "fee": 295,       // The theoretical fee to pay (approximation before tx signing)
+  "fee": 295n,      // The theoretical fee to pay (approximation before tx signing)
   "vsize": 220      // The theoretical virtual size (in bytes) of the tx
                     // (approximation before tx signing)
 }
@@ -127,7 +127,7 @@ For a more detailed explanation, refer to [the API documentation](https://bitcoi
 
 #### Fee Rates and Virtual Size
 
-The rate (`fee / vsize`) returned by `coinselect` may be higher than the specified `feeRate`. This discrepancy is due to rounding effects (target values must be integers in satoshis) and the possibility of not creating change if it falls below the dust threshold, as illustrated in the first code snippet.
+The rate (`fee / vsize`) returned by `coinselect` may be higher than the specified `feeRate`. This discrepancy is due to rounding effects (target values are integer satoshis represented as `bigint`) and the possibility of not creating change if it falls below the dust threshold, as illustrated in the first code snippet.
 
 After signing, the final `vsize` might be lower than the initial estimate provided by `coinselect()`/`vsize()`. This is because `vsize` is calculated assuming DER-encoded signatures of 72 bytes, though they can occasionally be 71 bytes. Consequently, the final `feeRate` might exceed the pre-signing estimate. In summary, `feeRateAfterSigning >= (fee / vsize) >= feeRate`.
 
@@ -166,11 +166,11 @@ const { utxos, targets, fee, vsize } = maxFunds({
   utxos: [
     {
       output: new Output({ descriptor: 'addr(bc1qzne9qykh9j55qt8ccqamusp099spdfr49tje60)' }),
-      value: 2000
+      value: 2000n
     },
     {
       output: new Output({ descriptor: 'addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)' }),
-      value: 4000
+      value: 4000n
     }
   ],
   targets: [
@@ -259,7 +259,7 @@ const { parseKeyExpression, Output } = DescriptorsFactory(secp256k1);
 const Key1: string = "[73c5da0a/44'/0'/0']xpubDC5FSnBiZDMmhiuCmWAYsLwgLYrrT9rAqvTySfuCCrgsWz8wxMXUS9Tb9iVMvcRbvFcAHGkMD5Kx8koh4GquNGNTfohfk7pgjhaPCdXpoba/0/0"
 const Key2: string = ...; // Some other Key Expression...
 
-const pubKey1: Buffer = parseKeyExpression({ keyExpression: Key1 }).pubkey;
+const pubKey1: Uint8Array = parseKeyExpression({ keyExpression: Key1 }).pubkey;
 
 const output: OutputInstance = new Output({
     descriptor: `wsh(andor(pk(${Key1}),older(10),pkh(${Key2})))`, 

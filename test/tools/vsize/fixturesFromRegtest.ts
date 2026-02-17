@@ -4,6 +4,7 @@
 import fs from 'fs';
 import path from 'path';
 import { Psbt, Network } from 'bitcoinjs-lib';
+import { toHex } from 'uint8array-tools';
 import { RegtestUtils } from 'regtest-client';
 import {
   DescriptorsFactory,
@@ -49,8 +50,10 @@ function createPsbt({
   outputs.forEach(output => {
     output.updatePsbtAsOutput({
       psbt,
-      value: Math.round(
-        (inputs.length * INPUT_VALUE) / outputs.length - FEE_PER_OUTPUT
+      value: BigInt(
+        Math.round(
+          (inputs.length * INPUT_VALUE) / outputs.length - FEE_PER_OUTPUT
+        )
       )
     });
   });
@@ -106,7 +109,7 @@ const connectToRegtest = async () => {
 };
 
 const parse = (
-  outputs: Array<{ descriptor: string; signersPubKeys?: Array<Buffer> }>
+  outputs: Array<{ descriptor: string; signersPubKeys?: Array<Uint8Array> }>
 ) =>
   outputs.map(output => {
     const parsed: {
@@ -119,7 +122,7 @@ const parse = (
     if (output.signersPubKeys) {
       //We pass signersPubKeys for wsh(MINISCRIPT), sh(MINISCRIPT), shWsh(MINISCRIPT)
       parsed.signersPubKeys = output.signersPubKeys.map(signerPubKey =>
-        signerPubKey.toString('hex')
+        toHex(signerPubKey)
       );
     } else {
       //We also compute standard addresses for the rest (the non-miniscript based)
@@ -144,7 +147,7 @@ const generateFixtures = async () => {
     const inputOrigins: Array<InputOrigin> = [];
     for (const input of inputs) {
       const unspent = await regtestUtils.faucetComplex(
-        input.getScriptPubKey(),
+        Buffer.from(input.getScriptPubKey()),
         INPUT_VALUE
       );
       const { txHex } = await regtestUtils.fetch(unspent.txId);
@@ -165,8 +168,8 @@ const generateFixtures = async () => {
     // Serializing signaturesPerInput
     const serializedSignatures = signaturesPerInput.map(signatures =>
       signatures.map(sig => ({
-        pubkey: sig.pubkey.toString('hex'),
-        signature: sig.signature.toString('hex')
+        pubkey: toHex(sig.pubkey),
+        signature: toHex(sig.signature)
       }))
     );
 

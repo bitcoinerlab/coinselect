@@ -7,7 +7,7 @@
 // Look for byteLength: https://github.com/bitcoinjs/bitcoinjs-lib/blob/master/ts_src/transaction.ts
 // https://github.com/bitcoinjs/coinselect/blob/master/utils.js
 
-import type { PartialSig } from 'bip174/src/lib/interfaces';
+import type { PartialSig } from 'bip174';
 import type { OutputInstance } from '@bitcoinerlab/descriptors';
 import { encodingLength } from 'varuint-bitcoin';
 

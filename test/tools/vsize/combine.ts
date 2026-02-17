@@ -11,7 +11,7 @@ import {
 import { mnemonicToSeedSync } from 'bip39';
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const { encode: olderEncode } = require('bip68');
-import { compilePolicy } from '@bitcoinerlab/miniscript';
+import { compilePolicy } from '@bitcoinerlab/miniscript-policies';
 const { BIP32, parseKeyExpression } = DescriptorsFactory(secp256k1);
 
 const MNEMONIC =
@@ -50,7 +50,7 @@ const miniscript = expandedMiniscript
   .replace('@instantKey', instantKey);
 
 interface OutputsDataType {
-  [key: string]: { descriptor: string; signersPubKeys?: Array<Buffer> };
+  [key: string]: { descriptor: string; signersPubKeys?: Array<Uint8Array> };
 }
 
 const outputsData: OutputsDataType = {
@@ -115,15 +115,18 @@ const outputsData: OutputsDataType = {
 // Function to generate all non-empty combinations of the properties of an object
 function getAllCombinations(
   obj: OutputsDataType
-): [Array<{ descriptor: string; signersPubKeys?: Array<Buffer> }>, string[]][] {
+): [
+  Array<{ descriptor: string; signersPubKeys?: Array<Uint8Array> }>,
+  string[]
+][] {
   const result: [
-    Array<{ descriptor: string; signersPubKeys?: Array<Buffer> }>,
+    Array<{ descriptor: string; signersPubKeys?: Array<Uint8Array> }>,
     string[]
   ][] = [];
   const keys = Object.keys(obj);
 
   const combine = (
-    prefix: Array<{ descriptor: string; signersPubKeys?: Array<Buffer> }>,
+    prefix: Array<{ descriptor: string; signersPubKeys?: Array<Uint8Array> }>,
     keys: string[],
     prefixKeys: string[]
   ) => {

@@ -82,16 +82,18 @@ export function dustThreshold(
     void err;
     inputWeight = 272;
   }
-  return Math.ceil(
-    dustRelayFeeRate * Math.ceil((output.outputWeight() + inputWeight) / 4)
+  return BigInt(
+    Math.ceil(
+      dustRelayFeeRate * Math.ceil((output.outputWeight() + inputWeight) / 4)
+    )
   );
 }
 
 export function isDust(
   output: OutputInstance,
-  value: number,
+  value: bigint,
   dustRelayFeeRate: number = DUST_RELAY_FEE_RATE
 ) {
-  if (!Number.isInteger(value)) throw new Error(`Invalid value ${value}`);
+  if (typeof value !== 'bigint') throw new Error(`Invalid value ${value}`);
   return value < dustThreshold(output, dustRelayFeeRate);
 }
