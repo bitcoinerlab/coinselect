@@ -15,6 +15,13 @@ For detailed API documentation, visit [https://bitcoinerlab.com/modules/coinsele
 
 - Prevents the creation of outputs below the dust threshold, which Bitcoin nodes typically do not relay.
 
+## v2.0.0 (Breaking Changes)
+
+- All satoshi-denominated values are now `bigint` (`utxos[].value`, `targets[].value`, change value, `fee`, and `dustThreshold`).
+- `feeRate` and `dustRelayFeeRate` remain `number` values (sat/vB).
+- The project aligns with `@bitcoinerlab/descriptors` v3 APIs and byte-array usage (`Uint8Array` instead of `Buffer` in public-facing flows).
+- Taproot script-path workflows are supported through `tr(KEY,TREE)` descriptors with `taprootSpendPath: 'script'` and optional `tapLeaf`.
+
 ## Usage
 
 To get started, first install the necessary dependencies:
@@ -91,7 +98,28 @@ This code produces the following result:
 
 **Note on No Solutions:** If `coinselect` and similar algorithms in this library can't find a feasible combination of UTXOs for the specified targets, they return `undefined`. This means the transaction isn't viable with the given inputs and constraints. Ensure to handle such cases in your code, perhaps by informing the user or modifying the input parameters.
 
-**Note on `addr()`:** When using `addr(SH_ADDRESS)` descriptors, the library assumes they represent Segwit `SH_WPKH_ADDRESS`. For scripts, use the `sh(MINISCRIPT)` descriptor format. Similarly, when using `addr(TR_ADDRESS)` descriptors, the library assumes they represent single-key Taproot addresses such as those defined in BIP86, without script paths.
+**Note on `addr()`:** When using `addr(SH_ADDRESS)` descriptors, the library assumes they represent Segwit `SH_WPKH_ADDRESS`. For scripts, use the `sh(MINISCRIPT)` descriptor format. Similarly, when using `addr(TR_ADDRESS)` descriptors, the library assumes they represent single-key Taproot addresses such as those defined in BIP86, without script paths. For tapscript/script-path spending, use explicit `tr(KEY,TREE)` descriptors.
+
+Compact tapscript example:
+
+```typescript
+import { vsize } from '@bitcoinerlab/coinselect';
+
+const INTERNAL_KEY = 'a34b99f22c790c4e36b2b3c2c35a36db06226e41c692fc82b8b56ac1c540c5bd';
+const LEAF_KEY_A = '669b8afcec803a0d323e9a17f3ea8e68e8abe5a278020a929adbec52421adbd0';
+const LEAF_KEY_B = 'c6e26fdf91debe78458853f1ba08d8de71b7672a099e1be5b6204dab83c046e5';
+
+const tapscriptUtxo = new Output({
+  descriptor: `tr(${INTERNAL_KEY},{pk(${LEAF_KEY_A}),pk(${LEAF_KEY_B})})`,
+  taprootSpendPath: 'script',
+  tapLeaf: `pk(${LEAF_KEY_A})`
+});
+
+const estimatedVsize = vsize(
+  [tapscriptUtxo],
+  [new Output({ descriptor: `tr(${INTERNAL_KEY})` })]
+);
+```
 
 Additionally, if you only need to compute the `vsize` for a specific set of inputs and outputs, you can use the following approach:
 
