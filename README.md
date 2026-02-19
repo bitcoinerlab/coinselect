@@ -15,6 +15,13 @@ For detailed API documentation, visit [https://bitcoinerlab.com/modules/coinsele
 
 - Prevents the creation of outputs below the dust threshold, which Bitcoin nodes typically do not relay.
 
+## v2.0.0 (Breaking Changes)
+
+- All satoshi-denominated values are now `bigint` (`utxos[].value`, `targets[].value`, change value, `fee`, and `dustThreshold`).
+- `feeRate` and `dustRelayFeeRate` remain `number` values (sat/vB).
+- The project aligns with `@bitcoinerlab/descriptors` v3 APIs and byte-array usage (`Uint8Array` instead of `Buffer` in public-facing flows).
+- Taproot script-path workflows are supported through `tr(KEY,TREE)` descriptors with `taprootSpendPath: 'script'` and optional `tapLeaf`.
+
 ## Usage
 
 To get started, first install the necessary dependencies:
@@ -44,17 +51,17 @@ const { utxos, targets, fee, vsize } = coinselect({
   utxos: [
     {
       output: new Output({ descriptor: 'addr(bc1qzne9qykh9j55qt8ccqamusp099spdfr49tje60)' }),
-      value: 2000
+      value: 2000n
     },
     {
       output: new Output({ descriptor: 'addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)' }),
-      value: 4000
+      value: 4000n
     }
   ],
   targets: [
     {
       output: new Output({ descriptor: 'addr(bc1qxtuy67s0rnz7uq2cyejqx5lj8p25mh0fz2pltm)' }),
-      value: 3000
+      value: 3000n
     }
   ],
   remainder: new Output({ descriptor: 'addr(bc1qwfh5mj2kms4rrf8amr66f7d5ckmpdqdzlpr082)' }),
@@ -69,21 +76,21 @@ This code produces the following result:
   "utxos": [
     {
       "output": {}, // The same OutputInstance as above: utxos[0].output
-      "value": 4000
+      "value": 4000n
     }
   ],
   "targets": [
     {
       "output": {}, // The same OutputInstance as above: targets[0].output
-      "value": 3000
+      "value": 3000n
     },
     {
       "output": {}, // A new OutputInstance corresponding to the change
                     // address passed in remainder
-      "value": 705  // The final change value that you will receive
+      "value": 705n // The final change value that you will receive
     }
   ],
-  "fee": 295,       // The theoretical fee to pay (approximation before tx signing)
+  "fee": 295n,      // The theoretical fee to pay (approximation before tx signing)
   "vsize": 220      // The theoretical virtual size (in bytes) of the tx
                     // (approximation before tx signing)
 }
@@ -103,6 +110,27 @@ const numBytes = vsize(
     new Output({ descriptor: 'addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)' })
   ],
   [ new Output({ descriptor: 'addr(bc1qxtuy67s0rnz7uq2cyejqx5lj8p25mh0fz2pltm)' }) ]
+);
+```
+
+For tapscript/script-path spending, use explicit `tr(KEY,TREE)` descriptors:
+
+```typescript
+import { vsize } from '@bitcoinerlab/coinselect';
+
+const INTERNAL_KEY = 'a34b99f22c790c4e36b2b3c2c35a36db06226e41c692fc82b8b56ac1c540c5bd';
+const LEAF_KEY_A = '669b8afcec803a0d323e9a17f3ea8e68e8abe5a278020a929adbec52421adbd0';
+const LEAF_KEY_B = 'c6e26fdf91debe78458853f1ba08d8de71b7672a099e1be5b6204dab83c046e5';
+
+const tapscriptUtxo = new Output({
+  descriptor: `tr(${INTERNAL_KEY},{pk(${LEAF_KEY_A}),pk(${LEAF_KEY_B})})`,
+  taprootSpendPath: 'script',
+  tapLeaf: `pk(${LEAF_KEY_A})`
+});
+
+const estimatedVsize = vsize(
+  [tapscriptUtxo],
+  [new Output({ descriptor: `tr(${INTERNAL_KEY})` })]
 );
 ```
 
@@ -127,7 +155,7 @@ For a more detailed explanation, refer to [the API documentation](https://bitcoi
 
 #### Fee Rates and Virtual Size
 
-The rate (`fee / vsize`) returned by `coinselect` may be higher than the specified `feeRate`. This discrepancy is due to rounding effects (target values must be integers in satoshis) and the possibility of not creating change if it falls below the dust threshold, as illustrated in the first code snippet.
+The rate (`fee / vsize`) returned by `coinselect` may be higher than the specified `feeRate`. This discrepancy is due to rounding effects (target values are integer satoshis represented as `bigint`) and the possibility of not creating change if it falls below the dust threshold, as illustrated in the first code snippet.
 
 After signing, the final `vsize` might be lower than the initial estimate provided by `coinselect()`/`vsize()`. This is because `vsize` is calculated assuming DER-encoded signatures of 72 bytes, though they can occasionally be 71 bytes. Consequently, the final `feeRate` might exceed the pre-signing estimate. In summary, `feeRateAfterSigning >= (fee / vsize) >= feeRate`.
 
@@ -166,11 +194,11 @@ const { utxos, targets, fee, vsize } = maxFunds({
   utxos: [
     {
       output: new Output({ descriptor: 'addr(bc1qzne9qykh9j55qt8ccqamusp099spdfr49tje60)' }),
-      value: 2000
+      value: 2000n
     },
     {
       output: new Output({ descriptor: 'addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)' }),
-      value: 4000
+      value: 4000n
     }
   ],
   targets: [
@@ -259,7 +287,7 @@ const { parseKeyExpression, Output } = DescriptorsFactory(secp256k1);
 const Key1: string = "[73c5da0a/44'/0'/0']xpubDC5FSnBiZDMmhiuCmWAYsLwgLYrrT9rAqvTySfuCCrgsWz8wxMXUS9Tb9iVMvcRbvFcAHGkMD5Kx8koh4GquNGNTfohfk7pgjhaPCdXpoba/0/0"
 const Key2: string = ...; // Some other Key Expression...
 
-const pubKey1: Buffer = parseKeyExpression({ keyExpression: Key1 }).pubkey;
+const pubKey1: Uint8Array = parseKeyExpression({ keyExpression: Key1 }).pubkey;
 
 const output: OutputInstance = new Output({
     descriptor: `wsh(andor(pk(${Key1}),older(10),pkh(${Key2})))`, 

@@ -4,6 +4,7 @@
 import fs from 'fs';
 import path from 'path';
 import { Psbt, Network } from 'bitcoinjs-lib';
+import { toHex } from 'uint8array-tools';
 import { RegtestUtils } from 'regtest-client';
 import {
   DescriptorsFactory,
@@ -20,7 +21,7 @@ type InputOrigin = { txHex: string; vout: number };
 const INPUT_VALUE = 10000;
 const FEE_PER_OUTPUT = 10;
 
-import { network, masterNode, transactions } from './combine';
+import { getVsizeFixtureData } from './combine';
 
 const fixturesPath = path.join(__dirname, '../../fixtures/vsize.json');
 import type { FixturesMap } from '../../vsize.test';
@@ -49,8 +50,10 @@ function createPsbt({
   outputs.forEach(output => {
     output.updatePsbtAsOutput({
       psbt,
-      value: Math.round(
-        (inputs.length * INPUT_VALUE) / outputs.length - FEE_PER_OUTPUT
+      value: BigInt(
+        Math.round(
+          (inputs.length * INPUT_VALUE) / outputs.length - FEE_PER_OUTPUT
+        )
       )
     });
   });
@@ -61,11 +64,14 @@ function createPsbt({
   //  return partialSig;
   //});
   const signaturesPerInput = psbt.data.inputs.map((input, index) => {
+    if (input.tapScriptSig && input.tapScriptSig.length > 0) {
+      return input.tapScriptSig.map(sig => ({
+        pubkey: sig.pubkey,
+        signature: sig.signature
+      }));
+    }
+
     if (input.tapKeySig) {
-      if (input.tapScriptSig && input.tapScriptSig.length > 0)
-        throw new Error(
-          `Script path spending detected in input #${index}. This is not yet supported.`
-        );
       if (!input.tapInternalKey)
         throw new Error(`single-key internal key not set`);
       return [
@@ -106,7 +112,8 @@ const connectToRegtest = async () => {
 };
 
 const parse = (
-  outputs: Array<{ descriptor: string; signersPubKeys?: Array<Buffer> }>
+  outputs: Array<{ descriptor: string; signersPubKeys?: Array<Uint8Array> }>,
+  network: Network
 ) =>
   outputs.map(output => {
     const parsed: {
@@ -119,7 +126,7 @@ const parse = (
     if (output.signersPubKeys) {
       //We pass signersPubKeys for wsh(MINISCRIPT), sh(MINISCRIPT), shWsh(MINISCRIPT)
       parsed.signersPubKeys = output.signersPubKeys.map(signerPubKey =>
-        signerPubKey.toString('hex')
+        toHex(signerPubKey)
       );
     } else {
       //We also compute standard addresses for the rest (the non-miniscript based)
@@ -129,6 +136,7 @@ const parse = (
   });
 
 const generateFixtures = async () => {
+  const { network, masterNode, transactions } = await getVsizeFixtureData();
   const fixtures: FixturesMap = {};
   for (const [index, transaction] of Object.entries(transactions)) {
     console.log(
@@ -144,7 +152,7 @@ const generateFixtures = async () => {
     const inputOrigins: Array<InputOrigin> = [];
     for (const input of inputs) {
       const unspent = await regtestUtils.faucetComplex(
-        input.getScriptPubKey(),
+        Buffer.from(input.getScriptPubKey()),
         INPUT_VALUE
       );
       const { txHex } = await regtestUtils.fetch(unspent.txId);
@@ -165,8 +173,8 @@ const generateFixtures = async () => {
     // Serializing signaturesPerInput
     const serializedSignatures = signaturesPerInput.map(signatures =>
       signatures.map(sig => ({
-        pubkey: sig.pubkey.toString('hex'),
-        signature: sig.signature.toString('hex')
+        pubkey: toHex(sig.pubkey),
+        signature: toHex(sig.signature)
       }))
     );
 
@@ -174,8 +182,12 @@ const generateFixtures = async () => {
     fixtures[transaction.info] = {
       fixture: transaction.info,
       //extract the standardAddr prop from the parsed object array:
-      inputs: parse(transaction.inputs).map(({ standardAddr: _, ...r }) => r),
-      outputs: parse(transaction.outputs).map(({ standardAddr: _, ...r }) => r),
+      inputs: parse(transaction.inputs, network).map(
+        ({ standardAddr: _, ...r }) => r
+      ),
+      outputs: parse(transaction.outputs, network).map(
+        ({ standardAddr: _, ...r }) => r
+      ),
       psbt: psbt.toBase64(),
       signaturesPerInput: serializedSignatures,
       vsize
@@ -184,8 +196,12 @@ const generateFixtures = async () => {
     //Also provide an alternative addr() descriptor format when not being
     //miniscript-based
     if (
-      parse(transaction.inputs).some(input => 'standardAddr' in input) ||
-      parse(transaction.outputs).some(output => 'standardAddr' in output)
+      parse(transaction.inputs, network).some(
+        input => 'standardAddr' in input
+      ) ||
+      parse(transaction.outputs, network).some(
+        output => 'standardAddr' in output
+      )
     ) {
       const info = `Using addr() descriptors - ${transaction.info}`;
       console.log(
@@ -194,11 +210,13 @@ const generateFixtures = async () => {
       fixtures[info] = {
         fixture: info,
         //Use the standardAddr prop from the parsed object array to create a new descriptor:
-        inputs: parse(transaction.inputs).map(({ standardAddr, ...rest }) => ({
-          ...rest,
-          descriptor: standardAddr ? `addr(${standardAddr})` : rest.descriptor
-        })),
-        outputs: parse(transaction.outputs).map(
+        inputs: parse(transaction.inputs, network).map(
+          ({ standardAddr, ...rest }) => ({
+            ...rest,
+            descriptor: standardAddr ? `addr(${standardAddr})` : rest.descriptor
+          })
+        ),
+        outputs: parse(transaction.outputs, network).map(
           ({ standardAddr, ...rest }) => ({
             ...rest,
             descriptor: standardAddr ? `addr(${standardAddr})` : rest.descriptor

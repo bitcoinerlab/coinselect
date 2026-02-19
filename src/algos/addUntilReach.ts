@@ -41,7 +41,7 @@ export function addUntilReach({
   validateFeeRate(feeRate);
   validateFeeRate(dustRelayFeeRate);
 
-  const targetsValue = targets.reduce((a, target) => a + target.value, 0);
+  const targetsValue = targets.reduce((a, target) => a + target.value, 0n);
   const utxosSoFar: Array<OutputWithValue> = [];
 
   for (const candidate of utxos) {
@@ -50,19 +50,19 @@ export function addUntilReach({
       targets.map(target => target.output)
     );
 
-    const utxosSoFarValue = utxosSoFar.reduce((a, utxo) => a + utxo.value, 0);
+    const utxosSoFarValue = utxosSoFar.reduce((a, utxo) => a + utxo.value, 0n);
 
-    const txFeeSoFar = Math.ceil(txSizeSoFar * feeRate);
+    const txFeeSoFar = BigInt(Math.ceil(txSizeSoFar * feeRate));
 
     const txSizeWithCandidate = vsize(
       [candidate.output, ...utxosSoFar.map(utxo => utxo.output)],
       targets.map(target => target.output)
     );
-    const txFeeWithCandidate = Math.ceil(txSizeWithCandidate * feeRate);
+    const txFeeWithCandidate = BigInt(Math.ceil(txSizeWithCandidate * feeRate));
 
     const candidateFeeContribution = txFeeWithCandidate - txFeeSoFar;
 
-    if (candidateFeeContribution < 0)
+    if (candidateFeeContribution < 0n)
       throw new Error(`candidateFeeContribution < 0`);
     // Only consider inputs with more value than the fee they require
     if (candidate.value > candidateFeeContribution) {
@@ -75,8 +75,8 @@ export function addUntilReach({
           [candidate.output, ...utxosSoFar.map(utxo => utxo.output)],
           [remainder, ...targets.map(target => target.output)]
         );
-        const txFeeWithCandidateAndChange = Math.ceil(
-          txSizeWithCandidateAndChange * feeRate
+        const txFeeWithCandidateAndChange = BigInt(
+          Math.ceil(txSizeWithCandidateAndChange * feeRate)
         );
         const remainderValue =
           utxosSoFarValue +

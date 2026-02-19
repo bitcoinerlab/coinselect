@@ -17,7 +17,7 @@ function utxoTransferredValue(
   isSegwitTx: boolean
 ) {
   return (
-    outputAndValue.value -
+    Number(outputAndValue.value) -
     (feeRate *
       outputAndValue.output.inputWeight(
         isSegwitTx,
@@ -57,11 +57,11 @@ function utxoTransferredValue(
  * ```
  * const { utxos, targets, fee, vsize } = coinselect({
  *   utxos: [
- *     { output: new Output({ descriptor: 'addr(...)' }), value: 2000 },
- *     { output: new Output({ descriptor: 'addr(...)' }), value: 4000 }
+ *     { output: new Output({ descriptor: 'addr(...)' }), value: 2000n },
+ *     { output: new Output({ descriptor: 'addr(...)' }), value: 4000n }
  *   ],
  *   targets: [
- *     { output: new Output({ descriptor: 'addr(...)' }), value: 3000 }
+ *     { output: new Output({ descriptor: 'addr(...)' }), value: 3000n }
  *   ],
  *   remainder: new Output({ descriptor: 'addr(...)' }),
  *   feeRate: 1.34

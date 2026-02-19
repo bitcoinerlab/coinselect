@@ -8,8 +8,8 @@ describe('errors', () => {
   test('dusty outputs', () => {
     expect(() =>
       coinselect({
-        utxos: [{ output: new Output({ descriptor }), value: 1000 }],
-        targets: [{ output: new Output({ descriptor }), value: 546 - 1 }],
+        utxos: [{ output: new Output({ descriptor }), value: 1000n }],
+        targets: [{ output: new Output({ descriptor }), value: 545n }],
         remainder: new Output({ descriptor }),
         feeRate: 1
       })
@@ -19,7 +19,7 @@ describe('errors', () => {
     expect(() =>
       coinselect({
         utxos: [],
-        targets: [{ output: new Output({ descriptor }), value: 1000 }],
+        targets: [{ output: new Output({ descriptor }), value: 1000n }],
         remainder: new Output({ descriptor }),
         feeRate: 1
       })
@@ -28,7 +28,7 @@ describe('errors', () => {
   test('no outputs', () => {
     expect(() =>
       coinselect({
-        utxos: [{ output: new Output({ descriptor }), value: 1000 }],
+        utxos: [{ output: new Output({ descriptor }), value: 1000n }],
         targets: [],
         remainder: new Output({ descriptor }),
         feeRate: 1

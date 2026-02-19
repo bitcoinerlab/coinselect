@@ -45,14 +45,16 @@ export function maxFunds({
   validateFeeRate(dustRelayFeeRate);
 
   const outputs = [...targets.map(target => target.output), remainder];
-  const targetsValue = targets.reduce((a, target) => a + target.value, 0);
+  const targetsValue = targets.reduce((a, target) => a + target.value, 0n);
 
-  const allUtxosFee = Math.ceil(
-    feeRate *
-      vsize(
-        utxos.map(utxo => utxo.output),
-        outputs
-      )
+  const allUtxosFee = BigInt(
+    Math.ceil(
+      feeRate *
+        vsize(
+          utxos.map(utxo => utxo.output),
+          outputs
+        )
+    )
   );
 
   // Only consider inputs with more value than the fee they require
@@ -62,19 +64,21 @@ export function maxFunds({
       outputs
     );
     const feeContribution =
-      allUtxosFee - Math.ceil(feeRate * txSizeWithoutUtxo);
-    if (feeContribution < 0) throw new Error(`feeContribution < 0`);
+      allUtxosFee - BigInt(Math.ceil(feeRate * txSizeWithoutUtxo));
+    if (feeContribution < 0n) throw new Error(`feeContribution < 0`);
     return validUtxo.value > feeContribution;
   });
 
-  const validFee = Math.ceil(
-    feeRate *
-      vsize(
-        validUtxos.map(utxo => utxo.output),
-        outputs
-      )
+  const validFee = BigInt(
+    Math.ceil(
+      feeRate *
+        vsize(
+          validUtxos.map(utxo => utxo.output),
+          outputs
+        )
+    )
   );
-  const validUtxosValue = validUtxos.reduce((a, utxo) => a + utxo.value, 0);
+  const validUtxosValue = validUtxos.reduce((a, utxo) => a + utxo.value, 0n);
   const remainderValue = validUtxosValue - targetsValue - validFee;
   if (!isDust(remainder, remainderValue, dustRelayFeeRate)) {
     //return the same reference if nothing changed to interact nicely with

@@ -9,7 +9,7 @@ describe('dust', () => {
       dustThreshold(
         new Output({ descriptor: 'addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)' })
       )
-    ).toBe(546);
+    ).toBe(546n);
   });
 });
 
@@ -22,6 +22,6 @@ describe('dust', () => {
         })
       )
       //Why not 294: https://github.com/lightningnetwork/lnd/issues/3946
-    ).toBe(297);
+    ).toBe(297n);
   });
 });
