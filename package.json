@@ -1,6 +1,6 @@
 {
   "name": "@bitcoinerlab/coinselect",
-  "version": "1.3.4",
+  "version": "2.0.0",
   "author": "Jose-Luis Landabaso",
   "license": "MIT",
   "description": "A TypeScript library for Bitcoin transaction management, based on Bitcoin Descriptors for defining inputs and outputs. It facilitates optimal UTXO selection and transaction size calculation.",
@@ -55,6 +55,6 @@
     "uint8array-tools": "^0.0.9"
   },
   "dependencies": {
-    "@bitcoinerlab/descriptors": "^3.0.1"
+    "@bitcoinerlab/descriptors": "^3.0.2"
   }
 }
