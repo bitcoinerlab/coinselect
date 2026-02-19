@@ -98,9 +98,22 @@ This code produces the following result:
 
 **Note on No Solutions:** If `coinselect` and similar algorithms in this library can't find a feasible combination of UTXOs for the specified targets, they return `undefined`. This means the transaction isn't viable with the given inputs and constraints. Ensure to handle such cases in your code, perhaps by informing the user or modifying the input parameters.
 
-**Note on `addr()`:** When using `addr(SH_ADDRESS)` descriptors, the library assumes they represent Segwit `SH_WPKH_ADDRESS`. For scripts, use the `sh(MINISCRIPT)` descriptor format. Similarly, when using `addr(TR_ADDRESS)` descriptors, the library assumes they represent single-key Taproot addresses such as those defined in BIP86, without script paths. For tapscript/script-path spending, use explicit `tr(KEY,TREE)` descriptors.
+**Note on `addr()`:** When using `addr(SH_ADDRESS)` descriptors, the library assumes they represent Segwit `SH_WPKH_ADDRESS`. For scripts, use the `sh(MINISCRIPT)` descriptor format. Similarly, when using `addr(TR_ADDRESS)` descriptors, the library assumes they represent single-key Taproot addresses such as those defined in BIP86, without script paths.
 
-Compact tapscript example:
+Additionally, if you only need to compute the `vsize` for a specific set of inputs and outputs, you can use the following approach:
+
+```typescript
+import { vsize } from '@bitcoinerlab/coinselect';
+const numBytes = vsize(
+  [
+    new Output({ descriptor: 'addr(bc1qzne9qykh9j55qt8ccqamusp099spdfr49tje60)' }),
+    new Output({ descriptor: 'addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)' })
+  ],
+  [ new Output({ descriptor: 'addr(bc1qxtuy67s0rnz7uq2cyejqx5lj8p25mh0fz2pltm)' }) ]
+);
+```
+
+For tapscript/script-path spending, use explicit `tr(KEY,TREE)` descriptors:
 
 ```typescript
 import { vsize } from '@bitcoinerlab/coinselect';
@@ -118,19 +131,6 @@ const tapscriptUtxo = new Output({
 const estimatedVsize = vsize(
   [tapscriptUtxo],
   [new Output({ descriptor: `tr(${INTERNAL_KEY})` })]
-);
-```
-
-Additionally, if you only need to compute the `vsize` for a specific set of inputs and outputs, you can use the following approach:
-
-```typescript
-import { vsize } from '@bitcoinerlab/coinselect';
-const numBytes = vsize(
-  [
-    new Output({ descriptor: 'addr(bc1qzne9qykh9j55qt8ccqamusp099spdfr49tje60)' }),
-    new Output({ descriptor: 'addr(12higDjoCCNXSA95xZMWUdPvXNmkAduhWv)' })
-  ],
-  [ new Output({ descriptor: 'addr(bc1qxtuy67s0rnz7uq2cyejqx5lj8p25mh0fz2pltm)' }) ]
 );
 ```
 
