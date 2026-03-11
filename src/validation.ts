@@ -22,13 +22,27 @@ export function validateOutputWithValues(
     }
   }
 }
-export function validateFeeRate(feeRate: number) {
+export function validateFeeRate(
+  feeRate: number,
+  minimumFeeRate: number = MIN_FEE_RATE
+) {
+  validateMinimumFeeRate(minimumFeeRate);
   if (
     !Number.isFinite(feeRate) ||
-    feeRate < MIN_FEE_RATE ||
+    feeRate < minimumFeeRate ||
     feeRate > MAX_FEE_RATE
   ) {
     throw new Error(`Fee rate ${feeRate} not supported`);
+  }
+}
+
+function validateMinimumFeeRate(minimumFeeRate: number) {
+  if (
+    !Number.isFinite(minimumFeeRate) ||
+    minimumFeeRate < 0 ||
+    minimumFeeRate > MAX_FEE_RATE
+  ) {
+    throw new Error(`Minimum fee rate ${minimumFeeRate} not supported`);
   }
 }
 
@@ -43,7 +57,8 @@ export function validateDust(
 export function validatedFeeAndVsize(
   utxos: Array<OutputWithValue>,
   targets: Array<OutputWithValue>,
-  feeRate: number
+  feeRate: number,
+  minimumFeeRate: number = MIN_FEE_RATE
 ): { fee: bigint; vsize: number } {
   const fee =
     utxos.reduce((a, u) => a + u.value, 0n) -
@@ -60,6 +75,6 @@ export function validatedFeeAndVsize(
   // Instead, compare final fee
   if (fee < requiredFee)
     throw new Error(`Final fee ${fee} lower than required ${requiredFee}`);
-  validateFeeRate(finalFeeRate);
+  validateFeeRate(finalFeeRate, minimumFeeRate);
   return { fee, vsize: vsizeResult };
 }
