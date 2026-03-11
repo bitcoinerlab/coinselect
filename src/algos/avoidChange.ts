@@ -1,5 +1,5 @@
 import type { OutputInstance } from '@bitcoinerlab/descriptors';
-import { DUST_RELAY_FEE_RATE, OutputWithValue } from '../index';
+import { DUST_RELAY_FEE_RATE, MIN_FEE_RATE, OutputWithValue } from '../index';
 import {
   validateFeeRate,
   validateOutputWithValues,
@@ -28,6 +28,7 @@ export function avoidChange({
   targets,
   remainder,
   feeRate,
+  minimumFeeRate = MIN_FEE_RATE,
   dustRelayFeeRate = DUST_RELAY_FEE_RATE
 }: {
   utxos: Array<OutputWithValue>;
@@ -38,12 +39,13 @@ export function avoidChange({
    */
   remainder: OutputInstance;
   feeRate: number;
+  minimumFeeRate?: number;
   dustRelayFeeRate?: number;
 }) {
   validateOutputWithValues(utxos);
   validateOutputWithValues(targets);
   validateDust(targets);
-  validateFeeRate(feeRate);
+  validateFeeRate(feeRate, minimumFeeRate);
   validateFeeRate(dustRelayFeeRate);
 
   const targetsValue = targets.reduce((a, target) => a + target.value, 0n);
@@ -95,7 +97,12 @@ export function avoidChange({
           return {
             utxos: utxosResult.length === utxos.length ? utxos : utxosResult,
             targets,
-            ...validatedFeeAndVsize(utxosResult, targets, feeRate)
+            ...validatedFeeAndVsize(
+              utxosResult,
+              targets,
+              feeRate,
+              minimumFeeRate
+            )
           };
         } else utxosSoFar.push(candidate);
       }

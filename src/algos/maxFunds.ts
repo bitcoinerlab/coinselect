@@ -1,5 +1,5 @@
 import type { OutputInstance } from '@bitcoinerlab/descriptors';
-import { DUST_RELAY_FEE_RATE, OutputWithValue } from '../index';
+import { DUST_RELAY_FEE_RATE, MIN_FEE_RATE, OutputWithValue } from '../index';
 import {
   validateFeeRate,
   validateOutputWithValues,
@@ -27,6 +27,7 @@ export function maxFunds({
   targets,
   remainder,
   feeRate,
+  minimumFeeRate = MIN_FEE_RATE,
   dustRelayFeeRate = DUST_RELAY_FEE_RATE
 }: {
   utxos: Array<OutputWithValue>;
@@ -36,12 +37,13 @@ export function maxFunds({
    */
   remainder: OutputInstance;
   feeRate: number;
+  minimumFeeRate?: number;
   dustRelayFeeRate?: number;
 }) {
   validateOutputWithValues(utxos);
   if (targets.length) validateOutputWithValues(targets);
   validateDust(targets);
-  validateFeeRate(feeRate);
+  validateFeeRate(feeRate, minimumFeeRate);
   validateFeeRate(dustRelayFeeRate);
 
   const outputs = [...targets.map(target => target.output), remainder];
@@ -88,7 +90,7 @@ export function maxFunds({
     return {
       utxos: utxos.length === validUtxos.length ? utxos : validUtxos,
       targets,
-      ...validatedFeeAndVsize(validUtxos, targets, feeRate)
+      ...validatedFeeAndVsize(validUtxos, targets, feeRate, minimumFeeRate)
     };
   } else return;
 }

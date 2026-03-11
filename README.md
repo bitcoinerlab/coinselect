@@ -155,6 +155,19 @@ For a more detailed explanation, refer to [the API documentation](https://bitcoi
 
 #### Fee Rates and Virtual Size
 
+By default, `feeRate` is validated against a minimum of `0.1` sat/vB. For TRUC
+transactions, you can lower that validation floor by passing `minimumFeeRate`:
+
+```typescript
+const selected = coinselect({
+  utxos,
+  targets,
+  remainder,
+  feeRate: 0,
+  minimumFeeRate: 0
+});
+```
+
 The rate (`fee / vsize`) returned by `coinselect` may be higher than the specified `feeRate`. This discrepancy is due to rounding effects (target values are integer satoshis represented as `bigint`) and the possibility of not creating change if it falls below the dust threshold, as illustrated in the first code snippet.
 
 After signing, the final `vsize` might be lower than the initial estimate provided by `coinselect()`/`vsize()`. This is because `vsize` is calculated assuming DER-encoded signatures of 72 bytes, though they can occasionally be 71 bytes. Consequently, the final `feeRate` might exceed the pre-signing estimate. In summary, `feeRateAfterSigning >= (fee / vsize) >= feeRate`.

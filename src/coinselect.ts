@@ -1,6 +1,6 @@
 //TODO: docs: add a reference to the API
 import type { OutputInstance } from '@bitcoinerlab/descriptors';
-import { OutputWithValue, DUST_RELAY_FEE_RATE } from './index';
+import { OutputWithValue, DUST_RELAY_FEE_RATE, MIN_FEE_RATE } from './index';
 import {
   validateFeeRate,
   validateOutputWithValues,
@@ -75,6 +75,7 @@ export function coinselect({
   targets,
   remainder,
   feeRate,
+  minimumFeeRate = MIN_FEE_RATE,
   dustRelayFeeRate = DUST_RELAY_FEE_RATE
 }: {
   /**
@@ -97,6 +98,12 @@ export function coinselect({
    */
   feeRate: number;
   /**
+   * Minimum fee rate accepted for transaction fee validation. Defaults to the
+   * standard relay floor and can be lowered for package relay use cases.
+   * @defaultValue 0.1
+   */
+  minimumFeeRate?: number;
+  /**
    * Fee rate used to calculate the dust threshold for transaction
    * outputs. Defaults to standard dust relay fee rate if not specified.
    * @defaultValue 3
@@ -108,7 +115,7 @@ export function coinselect({
     validateOutputWithValues(targets);
     validateDust(targets);
   }
-  validateFeeRate(feeRate);
+  validateFeeRate(feeRate, minimumFeeRate);
   validateFeeRate(dustRelayFeeRate);
 
   //We will assume that the tx is segwit if there is at least one segwit
@@ -130,6 +137,7 @@ export function coinselect({
       targets,
       remainder,
       feeRate,
+      minimumFeeRate,
       dustRelayFeeRate
     }) ||
     addUntilReach({
@@ -137,6 +145,7 @@ export function coinselect({
       targets,
       remainder,
       feeRate,
+      minimumFeeRate,
       dustRelayFeeRate
     });
   if (coinselected) {
