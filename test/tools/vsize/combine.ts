@@ -9,6 +9,7 @@ import {
   scriptExpressions
 } from '@bitcoinerlab/descriptors';
 import { mnemonicToSeedSync } from 'bip39';
+import type { BIP32Interface } from 'bip32';
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const { encode: olderEncode } = require('bip68');
 import { compilePolicy, ready } from '@bitcoinerlab/miniscript-policies';
@@ -57,7 +58,10 @@ export async function getVsizeFixtureData() {
   await ready;
 
   const network = networks.regtest;
-  const masterNode = BIP32.fromSeed(mnemonicToSeedSync(MNEMONIC), network);
+  const masterNode: BIP32Interface = BIP32.fromSeed(
+    mnemonicToSeedSync(MNEMONIC),
+    network
+  );
 
   const delayedKey = keyExpressionBIP32({
     masterNode,
