@@ -1,6 +1,6 @@
 {
   "name": "@bitcoinerlab/coinselect",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "author": "Jose-Luis Landabaso",
   "license": "MIT",
   "description": "A TypeScript library for Bitcoin transaction management, based on Bitcoin Descriptors for defining inputs and outputs. It facilitates optimal UTXO selection and transaction size calculation.",
@@ -12,7 +12,13 @@
     "extends": "./node_modules/@bitcoinerlab/configs/eslintConfig"
   },
   "jest": {
-    "preset": "@bitcoinerlab/configs"
+    "preset": "@bitcoinerlab/configs",
+    "transform": {
+      "^.+node_modules/@noble/.+\\.js$": "<rootDir>/jest-esm-transform.cjs"
+    },
+    "transformIgnorePatterns": [
+      "/node_modules/(?!(@bitcoinerlab/secp256k1|@noble)/)"
+    ]
   },
   "scripts": {
     "webdocs": "typedoc --options ./node_modules/@bitcoinerlab/configs/webtypedoc.json",
@@ -45,16 +51,16 @@
   ],
   "devDependencies": {
     "@bitcoinerlab/configs": "^2.0.0",
-    "@bitcoinerlab/miniscript-policies": "^1.0.0",
-    "bip39": "^3.1.0",
+    "@bitcoinerlab/miniscript-policies": "^1.1.1",
+    "bip39": "^3.1.2",
     "bip68": "^1.0.4",
-    "bitcoinjs-lib": "^7.0.1",
+    "bitcoinjs-lib": "^7.0.5",
     "fs": "^0.0.1-security",
     "path": "^0.12.7",
     "regtest-client": "^0.2.1",
-    "uint8array-tools": "^0.0.9"
+    "uint8array-tools": "^0.0.10"
   },
   "dependencies": {
-    "@bitcoinerlab/descriptors": "^3.0.2"
+    "@bitcoinerlab/descriptors": "^3.2.1"
   }
 }
